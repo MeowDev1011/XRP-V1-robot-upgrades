@@ -44,7 +44,7 @@
 10. [🛠️ Calibration guide](#%EF%B8%8F-calibration-guide)
 11. [📚 Lessons from 800+ simulated matches](#-lessons-from-800-simulated-matches)
 12. [❓ FAQ](#-faq)
-13. [🧠 AI Copilot (Groq)](#-ai-copilot-groq)
+13. [🧠 AI Copilot (generic)](#-ai-copilot-generic-platform-agnostic)
 14. [📖 Wiki](#-wiki)
 14. [📖 Wiki](#-wiki)
 
@@ -275,14 +275,14 @@ Useful env flags for debugging:
 
 ## 🤖 24/7 battery in GitHub Actions
 
-`.github/workflows/battery-24-7.yml` runs the **entire battery continuously**:
+`.github/workflows/battery-24-7.yml` plays the **entire battery non-stop** (marathon style):
 
-- ⏰ **Every 3 hours** (`cron 0 */3 * * *`) — around the clock
-- 🚀 On every **push to `main`**
-- 🔘 On demand (**Run workflow** button, `workflow_dispatch`)
-- 📦 Logs of every battery are uploaded as artifacts (**90-day retention**)
+- ⏰ **Runs 24/7 by itself**: each run is a **~5 h 54 min marathon** of back-to-back batteries, then it **pauses 1 minute** and **re-arms itself** (`gh workflow run`) — the chain loops forever 🔁
+- 🚀 Also on every **push to `main`**, daily safety re-arm cron, and on demand (**Run workflow** button)
+- 🧯 A `concurrency` group guarantees **never two marathons at once**
+- 📦 Logs of every battery cycle are uploaded as artifacts (**90-day retention**)
 
-The **auto-improve workflow** (`auto-improve.yml`) goes one step further and runs **every 3 hours** too: `ci/autotune.py` plays real simulated matches to set a **baseline**, tries the tuning candidates listed in `ci/autotune.json` (one weapon constant at a time), and keeps a candidate **only if the measured score improves**. If something survived, it opens a **draft PR** with the changed constants + the evidence table — 🤝 *the robot proposes, humans merge*. And `daily-improve.yml` packs an even bigger battery once a day, automatically opening a GitHub Issue when any threshold regresses.
+The **auto-improve workflow** (`auto-improve.yml`) goes one step further and also runs on every push + scheduled: `ci/autotune.py` plays real simulated matches to set a **baseline**, tries the tuning candidates listed in `ci/autotune.json` (one weapon constant at a time), and keeps a candidate **only if the measured score improves**. If something survived, it pushes a branch and opens a **PR** with the evidence — 🤝 *the robot proposes, humans merge*. And `daily-improve.yml` packs an even bigger battery once a day, automatically opening a GitHub Issue when any threshold regresses.
 
 Quality thresholds enforced (`ci/battery.sh`) — the run turns **red** if ANY falls:
 
@@ -383,16 +383,23 @@ No — it's a fidelity plant (encoder inertia, IMU drift, programmed stalls, cra
 
 ---
 
-## 🧠 AI Copilot (Groq)
+## 🧠 AI Copilot (generic, platform-agnostic)
 
-🤝 The repo ships with an AI teammate for the developers: **`ai_copilot.py`** — already
-configured for **[Groq](https://groq.com)** (OpenAI-compatible): you only paste your token.
+🤝 The repo ships with an AI teammate for the developers: **`ai_copilot.py`**. It is
+**generic**: one config file with **THREE fields** — `base_url`, `api_path`, `api_token`
+(+ `model`) — with the values of ANY OpenAI-compatible provider you choose.
+
+```jsonc
+// ai_config.json  (or copy to ai_config.local.json — gitignored, token cannot leak)
+{
+  "base_url":  "<your provider base URL>",
+  "api_path":  "<your provider API path>",
+  "api_token": "<your token>",
+  "model":     "<your model>"
+}
+```
 
 ```bash
-# 1) one-time: put your Groq key here (ai_token.txt is gitignored — never committed!)
-echo "gsk_your_groq_token" > ai_token.txt
-
-# 2) use it
 python3 ai_copilot.py analyze            # diagnose the last battery + top-3 fixes
 python3 ai_copilot.py review             # strict review of your git diff (APPROVE/FIX FIRST)
 python3 ai_copilot.py improve weapon1_gyro_lock.py   # one-level-higher proposal
@@ -401,9 +408,8 @@ python3 ai_copilot.py chat               # interactive, iron rules preloaded
 python3 ai_copilot.py ask "how does trim work?"  --save answer.md
 ```
 
-- 🔧 `ai_config.json` holds `base_url` + `api_path` + `model` (Groq: `https://api.groq.com/openai/v1`, `/chat/completions`) — an expert can swap them for any OpenAI-compatible provider.
-- 🤖 Cloud mode: workflow **`ai-copilot.yml`** (*Run workflow* → task + question); with the GitHub secret `GROQ_TOKEN` set, it reports into an Issue + artifact (90 days).
-- 🧱 Stdlib only (`urllib`) — no extra dependencies. Runs on the laptop / Actions, **never on the robot during a match**.
+- 🧱 Stdlib only (`urllib`) — no extra dependencies. Runs where YOU launch it (laptop/PC).
+- 🚫 **It does not run in the cloud workflows** (the team decided: no API spend). It only runs when a developer executes it deliberately.
 - 🙅 The copilot proposes; **humans + the battery** decide. It never edits files autonomously and it never touches the test harnesses or F-metrics.
 
 ---

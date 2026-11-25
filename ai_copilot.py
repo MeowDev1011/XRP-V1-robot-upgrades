@@ -7,10 +7,11 @@ reviews changes, plans the next improvement and (with a human reviewing)
 edits the robot code. NOTE: this runs on the LAPTOP or in GitHub Actions —
 NEVER on the robot during a match (rule #1: the board has no internet).
 
-🔌 CONFIG (Groq ready — you only paste your token):
-  • ai_config.json  → base_url + api_path + model (already set for Groq)
-  • Your token      → create ai_token.txt next to this file (gitignored!)
-                      or set the environment variable GROQ_TOKEN.
+🔌 CONFIG — GENERIC (any OpenAI-compatible provider, platform-agnostic):
+  • Open ai_config.json (or copy it to ai_config.local.json) and fill
+    the THREE fields:  base_url  /  api_path  /  api_token  (+ model).
+  • That is all: token lives in YOUR config file, never committed.
+    (ai_config.local.json is gitignored so your token cannot leak.)
 
 🛠 COMMANDS:
   python3 ai_copilot.py ask "how do I raise park accuracy?"
@@ -29,9 +30,8 @@ import urllib.error
 import urllib.request
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
-CONFIG_PATH = os.path.join(ROOT, "ai_config.json")
-TOKEN_FILENAME = "ai_token.txt"
-ENV_KEYS = ("GROQ_TOKEN", "GROQ_API_TOKEN", "AI_TOKEN", "OPENAI_TOKEN")
+CONFIG_LOCAL = os.path.join(ROOT, "ai_config.local.json")
+CONFIG_DEFAULT = os.path.join(ROOT, "ai_config.json")
 CONTEXT_FILES = ("README.md", "pilot_gamepad.py", "weapon1_gyro_lock.py",
                  "weapon2_torque_boost.py", "weapon3_curves.py",
                  "weapon4_traction.py", "weapon5_endgame.py")
@@ -52,25 +52,23 @@ SYSTEM_PROMPT = (
 )
 
 
-# ---------------- config / token ----------------
+# ---------------- config (ONE file, THREE fields) ----------------
 def load_config():
-    with open(CONFIG_PATH, encoding="utf-8") as fh:
-        cfg = json.load(fh)
-    return cfg
+    """Prefer ai_config.local.json (gitignored), fallback to ai_config.json."""
+    path = CONFIG_LOCAL if os.path.exists(CONFIG_LOCAL) else CONFIG_DEFAULT
+    with open(path, encoding="utf-8") as fh:
+        return json.load(fh)
 
 
-def load_token():
-    for key in ENV_KEYS:
-        val = os.environ.get(key)
-        if val and val.strip():
-            return val.strip()
-    path = os.path.join(ROOT, TOKEN_FILENAME)
-    if os.path.exists(path):
-        with open(path, encoding="utf-8") as fh:
-            val = fh.read().strip()
-        if val and not val.startswith("<"):
-            return val
-    return None
+def check_config(cfg):
+    missing = [k for k in ("base_url", "api_path", "api_token", "model")
+               if not str(cfg.get(k) or "").strip()]
+    if missing:
+        print("🔑 ai config incomplete. Open ai_config.json "
+              "(or ai_config.local.json) and fill:",
+              ", ".join(missing))
+        return False
+    return True
 
 
 # ---------------- transport (stdlib only) ----------------
@@ -95,8 +93,8 @@ def chat(messages, cfg, token, temperature=None, max_tokens=None):
         with urllib.request.urlopen(req, timeout=120) as resp:
             data = json.load(resp)
     except urllib.error.HTTPError as exc:
-        raise SystemExit("API error %s: %s\n(check your token in ai_token.txt "
-                         "or env GROQ_TOKEN, and base_url/api_path)"
+        raise SystemExit("API error %s: %s\n(check api_token / base_url / api_path "
+                         "in your ai_config)"
                          % (exc.code, exc.read().decode("utf-8", "ignore")[:300]))
     except urllib.error.URLError as exc:
         raise SystemExit("Cannot reach %s (%s). Coming back when you have internet."
@@ -235,7 +233,7 @@ HELP = """🧠 AI Copilot — usage:
   python3 ai_copilot.py chat
 
 Optional: --save FILE.md (writes the answer).
-Token: put it in ai_token.txt or env GROQ_TOKEN (Groq-ready config in ai_config.json).
+Config: ai_config.json (or ai_config.local.json) — fill base_url, api_path, api_token.
 """
 
 
@@ -260,7 +258,6 @@ def interactive(cfg, token):
 
 def main(argv):
     cfg = load_config()
-    token = load_token()
     args = [a for a in argv if a != "--save"]
     save = argv.index("--save") + 1 < len(argv) if "--save" in argv else None
     if save:
@@ -270,18 +267,11 @@ def main(argv):
     if cmd == "help" or cmd not in TASKS and cmd != "chat":
         print(HELP)
         return 0
-    if cmd != "chat" and not token:
-        print("🔑 No token found.\n"
-              "   → Create %s with your Groq key (it is gitignored), or\n"
-              "   → export GROQ_TOKEN=your_token\n"
-              "Base URL and API path are already set in ai_config.json (Groq)."
-              % TOKEN_FILENAME)
+    if not check_config(cfg):
         return 2
+    token = str(cfg["api_token"]).strip()
 
     if cmd == "chat":
-        if not token:
-            print("🔑 Token required for chat (ai_token.txt or GROQ_TOKEN).")
-            return 2
         out = interactive(cfg, token)
     else:
         out = TASKS[cmd](args[1] if len(args) > 1 else None, cfg, token)

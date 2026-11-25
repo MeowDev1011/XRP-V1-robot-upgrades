@@ -28,7 +28,7 @@
 | 🚑 [Troubleshooting](Troubleshooting) | Symptoms, causes and fixes for the most common failures |
 | 🎛️ [Calibration](Calibration) | On-track drills to tune every weapon |
 | 🤝 [Collaborating](Collaborating) | Branches, PRs, the autonomous improvement workflow, do's & don'ts |
-| 🧠 [AI Copilot](AI-Copilot) | The Groq-powered copilot: analyze results, review PRs, plan, improve — you only paste your token |
+| 🧠 [AI Copilot](AI-Copilot) | The generic copilot (three config fields): analyze results, review PRs, plan, improve — you only paste your token |
 | 🌐 [Documentation Website](Documentation-Website) | The `docs/` HTML site and the 3D sandbox (DRIVE / SUMO / SOCCER) |
 
 ---

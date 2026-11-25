@@ -26,5 +26,5 @@ versioned with the code.
 | `Troubleshooting.md` | 🚑 Symptoms → cause → fix |
 | `Calibration.md` | 🎛️ Track drills, weapon by weapon |
 | `Collaborating.md` | 🤝 Branches, PRs, autonomous improvement |
-| `AI-Copilot.md` | 🧠 Groq copilot: analyze / review / plan / improve |
+| `AI-Copilot.md` | 🧠 Generic AI copilot: three fields (base_url / api_path / api_token) |
 | `Documentation-Website.md` | 🌐 docs/ site + 3D sandbox |

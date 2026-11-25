@@ -1,8 +1,9 @@
 {
-  "_comment": "🧠 AI COPILOT — Team Robots Legends (Groq, OpenAI-compatible). Token is NOT stored here: paste it in ai_token.txt (gitignored) or set env GROQ_TOKEN. You only ever need to add the token — base_url and api_path are already set for Groq.",
-  "base_url": "https://api.groq.com/openai/v1",
-  "api_path": "/chat/completions",
-  "model": "llama-3.3-70b-versatile",
+  "_comment": "🧠 AI Copilot config — GENERIC, platform-agnostic. Fill the THREE fields (base_url, api_path, api_token) with the values of YOUR provider (OpenAI-compatible). For local safety while pushing, copy this file to ai_config.local.json and fill that one instead (it is gitignored); you can also fill this file directly — just never push your token.",
+  "base_url": "",
+  "api_path": "",
+  "api_token": "",
+  "model": "",
   "max_tokens": 1800,
   "temperature": 0.4
 }

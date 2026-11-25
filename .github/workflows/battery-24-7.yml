@@ -1,12 +1,13 @@
 # =========================================================
-# 24/7 BATTERY — Team Robots Legends (FUSAMO)
-# Every 3 hours (or on demand) it plays the full package:
-#   Iron Acres (300 KID matches + 100 ADULT + 100 NO_ASSIST)
-#   DRIVE / SUMO / SUMO2 / SOCCER / SOCCER2 (100 KID)
-#   30-match stress + 12 math unit tests
-# If a metric drops below its threshold the run goes RED and
-# the log of each battery is kept as an artifact to review
-# the cause and EDIT pilot/weapons (never the tests).
+# 24/7 BATTERY MARATHON — Team Robots Legends (FUSAMO)
+# Plays the ENTIRE robot package around the clock:
+#   • each run is a ~5 h 54 min marathon of back-to-back batteries
+#   • then it PAUSES 1 minute and RE-TRIGGERS itself (24/7 chain)
+#   • a daily cron is kept only as a safety re-arm if the chain
+#     ever dies; pushes to main and the manual button also launch it
+# If a metric drops below its threshold the cycle is marked RED in the
+# run summary; artifacts keep every cycle log (90 days) so the team can
+# review the cause and EDIT pilot/weapons (never the tests).
 # =========================================================
 name: batteries-24-7
 
@@ -14,32 +15,65 @@ on:
   push:
     branches: [main]
   schedule:
-    - cron: "0 */3 * * *"     # every 3 hours, 24/7
-  workflow_dispatch: {}       # "Run workflow" button to fire it now
+    - cron: "40 7 * * *"     # daily safety re-arm (chain normally self-triggers)
+  workflow_dispatch: {}      # "Run workflow" button to fire it now
+
+concurrency:
+  group: batteries-24-7      # never two marathons at once; the next waits its turn
+  cancel-in-progress: false
 
 permissions:
   contents: read
 
 jobs:
-  batteries:
-    name: Iron Acres + SUMO + SUMO2 + FUTBOL + FUTBOL2 + DRIVE
+  marathon:
+    name: Marathon batteries (~6 h loop) — Iron Acres + SUMO + SUMO2 + SOCCER + SOCCER2 + DRIVE
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 366
+    env:
+      BATTERY_LOGS: /tmp/logs
     steps:
       - uses: actions/checkout@v4
 
-      - name: Play the full package (with quality thresholds)
-        id: battery
+      - name: Continuous batteries loop (~5 h 54 min) + 1 min pause + self re-arm
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          export BATTERY_LOGS="$RUNNER_TEMP/logs"
-          mkdir -p "$BATTERY_LOGS"
-          bash ci/battery.sh | tee "$BATTERY_LOGS/output.txt"
-          cat /tmp/summary.md >> "$GITHUB_STEP_SUMMARY"
+          mkdir -p /tmp/logs
+          START=$(date +%s)
+          DEADLINE=$((START + 5 * 3600 + 54 * 60))
+          CYCLE=0
+          FAILS=0
+          while [ "$(date +%s)" -lt "$DEADLINE" ]; do
+            CYCLE=$((CYCLE + 1))
+            LOG="/tmp/logs/cycle-$CYCLE.txt"
+            echo "== BATTERY CYCLE $CYCLE  ($(date -u +%H:%M:%S) UTC) =="
+            if bash ci/battery.sh > "$LOG" 2>&1; then
+              echo "cycle $CYCLE: ✅ ALL OK"
+            else
+              FAILS=$((FAILS + 1))
+              echo "cycle $CYCLE: ❌ FAILURES (see $LOG)"
+              tail -25 "$LOG"
+            fi
+            {
+              echo "## Cycle $CYCLE — $(date -u +%Y-%m-%d %H:%M UTC)"
+              tail -3 "$LOG" | sed 's/^/    /'
+              echo ""
+              grep -E '^\|' /tmp/summary.md 2>/dev/null | tail -14 || true
+              echo ""
+            } >> "$GITHUB_STEP_SUMMARY"
+            cp "$LOG" /tmp/logs/last.txt
+          done
+          echo "== MARATHON DONE: $CYCLE cycles, $FAILS failing =="
+          echo "## 🤖 Marathon total: $CYCLE cycles, $FAILS failing" >> "$GITHUB_STEP_SUMMARY"
+          echo "💤 Pausing 1 minute, then re-arming the 24/7 chain…"
+          sleep 60
+          gh workflow run batteries-24-7 --repo "${{ github.repository }}" --ref main
 
-      - name: Save battery logs
+      - name: Save marathon cycle logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: battery-logs
-          path: ${{ runner.temp }}/logs
+          name: battery-cycles
+          path: /tmp/logs
           retention-days: 90
