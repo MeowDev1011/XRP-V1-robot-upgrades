@@ -26,4 +26,5 @@ versioned with the code.
 | `Troubleshooting.md` | 🚑 Symptoms → cause → fix |
 | `Calibration.md` | 🎛️ Track drills, weapon by weapon |
 | `Collaborating.md` | 🤝 Branches, PRs, autonomous improvement |
+| `AI-Copilot.md` | 🧠 Groq copilot: analyze / review / plan / improve |
 | `Documentation-Website.md` | 🌐 docs/ site + 3D sandbox |

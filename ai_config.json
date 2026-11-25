@@ -1,0 +1,8 @@
+{
+  "_comment": "🧠 AI COPILOT — Team Robots Legends (Groq, OpenAI-compatible). Token is NOT stored here: paste it in ai_token.txt (gitignored) or set env GROQ_TOKEN. You only ever need to add the token — base_url and api_path are already set for Groq.",
+  "base_url": "https://api.groq.com/openai/v1",
+  "api_path": "/chat/completions",
+  "model": "llama-3.3-70b-versatile",
+  "max_tokens": 1800,
+  "temperature": 0.4
+}

@@ -44,7 +44,8 @@
 10. [🛠️ Calibration guide](#%EF%B8%8F-calibration-guide)
 11. [📚 Lessons from 800+ simulated matches](#-lessons-from-800-simulated-matches)
 12. [❓ FAQ](#-faq)
-13. [📜 License & credits](#-license--credits)
+13. [🧠 AI Copilot (Groq)](#-ai-copilot-groq)
+14. [📖 Wiki](#-wiki)
 14. [📖 Wiki](#-wiki)
 
 ---
@@ -379,6 +380,31 @@ Any official firmware ≥ 1.0.2 with XRPLib. Bluetooth gamepad support needs `XR
 
 **Q: Is the simulator identical to the real robot?**
 No — it's a fidelity plant (encoder inertia, IMU drift, programmed stalls, crash jolts) used to hunt bugs before they reach the metal. Real-track calibration is still mandatory, in the 🛠️ order above.
+
+---
+
+## 🧠 AI Copilot (Groq)
+
+🤝 The repo ships with an AI teammate for the developers: **`ai_copilot.py`** — already
+configured for **[Groq](https://groq.com)** (OpenAI-compatible): you only paste your token.
+
+```bash
+# 1) one-time: put your Groq key here (ai_token.txt is gitignored — never committed!)
+echo "gsk_your_groq_token" > ai_token.txt
+
+# 2) use it
+python3 ai_copilot.py analyze            # diagnose the last battery + top-3 fixes
+python3 ai_copilot.py review             # strict review of your git diff (APPROVE/FIX FIRST)
+python3 ai_copilot.py improve weapon1_gyro_lock.py   # one-level-higher proposal
+python3 ai_copilot.py plan               # roadmap ordered by score impact
+python3 ai_copilot.py chat               # interactive, iron rules preloaded
+python3 ai_copilot.py ask "how does trim work?"  --save answer.md
+```
+
+- 🔧 `ai_config.json` holds `base_url` + `api_path` + `model` (Groq: `https://api.groq.com/openai/v1`, `/chat/completions`) — an expert can swap them for any OpenAI-compatible provider.
+- 🤖 Cloud mode: workflow **`ai-copilot.yml`** (*Run workflow* → task + question); with the GitHub secret `GROQ_TOKEN` set, it reports into an Issue + artifact (90 days).
+- 🧱 Stdlib only (`urllib`) — no extra dependencies. Runs on the laptop / Actions, **never on the robot during a match**.
+- 🙅 The copilot proposes; **humans + the battery** decide. It never edits files autonomously and it never touches the test harnesses or F-metrics.
 
 ---
 

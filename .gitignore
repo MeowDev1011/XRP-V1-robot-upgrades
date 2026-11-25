@@ -1,2 +1,6 @@
 __pycache__/
 *.pyc
+ai_token.txt
+ai_token.backups/
+secrets*
+.secrets/
