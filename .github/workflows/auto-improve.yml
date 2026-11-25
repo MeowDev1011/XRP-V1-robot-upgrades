@@ -2,8 +2,9 @@
 # AUTO-IMPROVE 24/7 — Team Robots Legends (FUSAMO)
 # The robot plays REAL simulated matches against itself, tries
 # tuning candidates for weapon constants (ci/autotune.json) and
-# if (and only if) the measured score improves, opens a DRAFT PR
-# with the tuned constants + evidence.
+# if (and only if) the measured score improves, pushes a branch
+# and opens a PR (or an issue with the evidence when PRs are
+# disabled for Actions in the repo settings).
 # The robot proposes 🤝 the team decides (humans merge).
 # =========================================================
 name: auto-improve
@@ -18,10 +19,11 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  issues: write
 
 jobs:
   improve:
-    name: Play matches → tune constants → open PR
+    name: Play matches → tune constants → propose PR
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -30,7 +32,8 @@ jobs:
       - name: Autotune (math matches + candidates)
         id: tune
         run: |
-          python3 ci/autotune.py | tee autotune_run.log
+          python3 ci/autotune.py > /tmp/autotune_run.log 2>&1
+          tee autotune_report_run.log < /tmp/autotune_run.log
           echo "applied=$(cat /tmp/autotune_applied 2>/dev/null || echo no)" >> "$GITHUB_OUTPUT"
 
       - name: Attach the tuning report
@@ -43,24 +46,39 @@ jobs:
         with:
           name: autotune-logs
           path: |
-            autotune_run.log
+            autotune_report_run.log
             /tmp/autotune_report.md
           retention-days: 90
         continue-on-error: true
 
-      - name: Open improvement PR (draft)
+      - name: Propose improvement (PR, fallback issue)
         if: steps.tune.outputs.applied == 'yes'
         env:
           GH_TOKEN: ${{ github.token }}
+          REPO_URL: ${{ github.server_url }}/${{ github.repository }}
         run: |
-          BR="auto-improve/$(date +%Y%m%d-%H%M)"
-          git checkout -b "$BR"
+          {
+            echo "Proposed branch: $REPO_URL/tree/$BR"
+            echo ""
+          } >> /tmp/autotune_report.md
           git config user.name "Team Robots Legends"
           git config user.email "teamrobotslegends@fusamo.local"
+          BR="auto-improve/$(date +%Y%m%d-%H%M)"
+          {
+            echo BR="$BR"
+            echo "## 🤖 Autotune proposal"
+            echo ""
+            cat /tmp/autotune_report.md
+          } > /tmp/issue.md
+          git checkout -b "$BR"
           git add -A
           git -c commit.gpgsign=false commit -m "🤖 Autotune: constants improved in simulated matches"
           git push -u origin "$BR"
-          printf '%s\n' '🤖 Autonomous tuning proposal — simulated match evidence' > /tmp/pr-title.txt
-          gh pr create --repo "${{ github.repository }}" --draft --head "$BR" \
-            --title "$(cat /tmp/pr-title.txt)" \
-            --body-file /tmp/autotune_report.md
+          if ! gh pr create --repo "${{ github.repository }}" --draft --head "$BR" \
+               --title "🤖 Autonomous tuning proposal — simulated match evidence" \
+               --body-file /tmp/autotune_report.md 2>/dev/null; then
+            echo "PR creation not permitted for Actions; opening an issue with the evidence instead."
+            gh issue create --repo "${{ github.repository }}" \
+              --title "🤖 Autotune ready to bundle: review branch $BR" \
+              --body-file /tmp/issue.md
+          fi
