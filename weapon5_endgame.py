@@ -32,7 +32,7 @@ from XRPLib.defaults import drivetrain, imu, board, rangefinder
 MATCH_MS        = 150000   # exactly 2:30
 ENDGAME_MS        = 12000    # endgame duration: alert + return
 DT_MS             = 20
-V_RETORNO         = 0.85     # base return effort (calibrated: covers home
+V_RETURN         = 0.85     # base return effort (calibrated: covers home
                              # at ~130 cm within the 12 s; 0.45 arrives late)
 K_SOFT_ARRIVAL   = 0.04     # per remaining cm: lowers speed on approach
 V_ARRIVAL_MIN     = 0.18     # speed floor so it does not die before arriving
@@ -187,7 +187,7 @@ class EndGameManager:
             # face home first (pivot in place: no distance is lost)
             self._gyro.set_base(0.0, 0.0)
             return
-        v = V_RETORNO
+        v = V_RETURN
         v_arrival = K_SOFT_ARRIVAL * dist
         if v_arrival < v:
             v = max(V_ARRIVAL_MIN, v_arrival)

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🤖 Team Robots Legends — XRP Master Software</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="aurora"></div><div class="grid"></div>
+
+<nav>
+  <div class="wrap">
+    <div class="logo">🤖 Robots Legends <span>// XRP</span></div>
+    <div class="links">
+      <a href="#weapons">⚔️ Weapons</a>
+      <a href="#match">🎮 Match</a>
+      <a href="#sandbox">🧊 3D Sandbox</a>
+      <a href="#install">📥 Install</a>
+      <a href="#tests">🧪 Tests</a>
+      <a href="#trouble">🚑 Troubleshooting</a>
+      <a href="https://github.com/MeowDev1011/XRP-V1-robot-upgrades/wiki" class="cta">📖 Wiki</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="floaters">
+    <span style="top:12%;left:8%;">🤖</span>
+    <span style="top:22%;right:10%;animation-delay:-2s;">⚙️</span>
+    <span style="bottom:18%;left:14%;animation-delay:-4s;">⚽</span>
+    <span style="bottom:28%;right:16%;animation-delay:-1s;">🏆</span>
+    <span style="top:55%;left:4%;animation-delay:-5s;">🧲</span>
+  </div>
+  <div class="wrap">
+    <span class="pill">🧪 100% simulated &amp; verified · MicroPython · runs ON the board</span>
+    <h1>Robot legends are<br>built near the metal.</h1>
+    <p class="sub">
+      Master software of <b>Team Robots Legends</b> (FUSAMO) for the XRP
+      competition <b>⚔️ Iron Acres</b> — five secret assist weapons for a real
+      gamepad, one kid pilot, zero blocking code, 150,000 ms of pure teamwork.
+    </p>
+    <div class="badges">
+      <img class="badge-img" src="https://img.shields.io/badge/match-150s-blueviolet" alt="match length">
+      <img class="badge-img" src="https://img.shields.io/badge/loop-50%20Hz%20non--blocking-brightgreen" alt="50 Hz">
+      <img class="badge-img" src="https://img.shields.io/badge/time.sleep()-forbidden-red" alt="no sleep">
+      <img class="badge-img" src="https://img.shields.io/badge/CI-battery%2024%2F7-blue" alt="CI badge">
+      <img class="badge-img" src="https://img.shields.io/badge/STRICT-94.7%25-success" alt="strict">
+    </div>
+    <div class="hero-actions">
+      <a class="btn primary" href="sandbox.html">🧊 Open the 3D sandbox →</a>
+      <a class="btn ghost" href="https://github.com/MeowDev1011/XRP-V1-robot-upgrades">⭐ GitHub repo</a>
+      <a class="btn ghost" href="https://xrpcode.wpi.edu">🛠 XRPCode editor</a>
+    </div>
+  </div>
+</header>
+
+<section id="about">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <h2>⚡ What is this?</h2>
+      <p>The <b class="ok">XRP</b> (Experiential Robotics Platform, by SparkFun · WPI · DEKA · FIRST) is a
+      Pico&nbsp;W powered robot with encoders, an IMU, an ultrasonic sensor and servos. This repository holds
+      the <b>master software</b> our team runs during matches: a continuous 50 Hz console driven by a real
+      gamepad, wrapped by five assist weapons that correct, boost and protect the pilot.</p>
+    </div>
+    <div class="stats reveal">
+      <div class="stat"><b>5</b><span>secret weapons</span></div>
+      <div class="stat"><b>50 Hz</b><span>gamepad control loop</span></div>
+      <div class="stat"><b>150 s</b><span>match clock (ms-exact)</span></div>
+      <div class="stat"><b>94.7%</b><span>STRICT park rate</span></div>
+      <div class="stat"><b>0</b><span>sleep() calls. Ever.</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="weapons">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <h2>⚔️ The 5 Secret Weapons</h2>
+      <p>One weapon at a time builds, one match at a time improves. All weapons are continuous, sensor-driven
+      assistance — <b>no one-button macros</b>, <b>no blocking waits</b>, everything runs on the board.</p>
+    </div>
+    <div class="cards">
+      <div class="card reveal"><div class="wnum">1</div>
+        <h3>🎯 Gyro-Lock PID</h3>
+        <p>A real-time PID (<span class="k">Kp, Ki, Kd</span>) on <code>imu.get_yaw()</code> that locks the heading
+        whenever you drive straight and instantly kills spins, drifts and collisions.</p>
+        <ul><li><span class="k">File</span>: weapon1_gyro_lock.py</li>
+            <li><span class="k">Tune</span>: Kp=0.064 · Ki=0.06 · Kd=0.0055 · MIN_EFFORT=0.14</li></ul>
+      </div>
+      <div class="card reveal"><div class="wnum">2</div>
+        <h3>💪 Torque Boost</h3>
+        <p>Compares desired vs encoder-measured speed. Detects stalls at low speed and pours in extra torque,
+        then releases it the instant the wheels flow again.</p>
+        <ul><li><span class="k">File</span>: weapon2_torque_boost.py</li>
+            <li><span class="k">Tune</span>: STALL_RATIO=0.4 · BOOST_MAX=0.35 · BOOST_STEP=0.012</li></ul>
+      </div>
+      <div class="card reveal"><div class="wnum">3</div>
+        <h3>🕹️ Cubic Curves</h3>
+        <p>Cubic response curves turn raw stick input into surgical millimetre moves while keeping 100%
+        top speed for long runs.</p>
+        <ul><li><span class="k">File</span>: weapon3_curves.py</li>
+            <li><span class="k">Tune</span>: MIX=0.35 · MIX_PRECISION=0.12</li></ul>
+      </div>
+      <div class="card reveal"><div class="wnum">4</div>
+        <h3>🛞 Traction &amp; Brake</h3>
+        <p>Ramps launches so wheels never slip from zero, and applies a controlled inverse pulse through the
+        encoders when the command returns to zero — the robot nails its position.</p>
+        <ul><li><span class="k">File</span>: weapon4_traction.py</li>
+            <li><span class="k">Tune</span>: RAMP_MAX=3.0 · PULSE_K=0.012 · RPM_STOP_MIN=3.0</li></ul>
+      </div>
+      <div class="card reveal"><div class="wnum">5</div>
+        <h3>⏱️ Auto-Endgame</h3>
+        <p>Counts exactly 150,000 ms, fuses encoders + IMU into an X, Y, θ odometry, and drives the robot
+        back home during the final 12 s so the park scores.</p>
+        <ul><li><span class="k">File</span>: weapon5_endgame.py</li>
+            <li><span class="k">Tune</span>: V_RETURN=0.85 · PARK_LOCK_CM=8 · FINAL_SAFE_MS=2000</li></ul>
+      </div>
+      <div class="card reveal"><div class="wnum">🎮</div>
+        <h3>🧑‍🚀 Pilot console</h3>
+        <p>The real gamepad at 50 Hz is always the boss. Assist modes: <b>STRAIGHT</b>, <b>TURN</b>,
+        <b>RETURN</b> and <b>STOP</b> — piloting built for a young gamer with great instincts, not yet adult
+        thumb precision. The kid never needs to reverse.</p>
+        <ul><li><span class="k">File</span>: pilot_gamepad.py · main_match.py</li></ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="sandbox">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <h2>🧊 The 3D Sandbox</h2>
+      <p>Play the three training games right in your browser with the same physics philosophy as the board
+      simulators: 🚗 <b>DRIVE</b> (circuit through the doors), 🤼 <b>SUMO</b> (1v1 push-out) and
+      ⚽ <b>SOCCER</b> (score past the keeper). 🏟️ Iron Acres is documented in the
+      <a href="https://github.com/MeowDev1011/XRP-V1-robot-upgrades/wiki">wiki</a> but not sandboxed — it
+      needs the full field model.</p>
+    </div>
+    <div class="card reveal" style="text-align:center;padding:34px;">
+      <div style="font-size:52px;">🚗 🤼 ⚽</div>
+      <p style="margin-top:10px;">Keyboard: <b>W A S D</b> or arrows to drive · <b>Space</b> = brake
+      · <b>R</b> = restart · drag the scene to orbit the camera (on phone: touch buttons on screen).</p>
+      <a class="btn primary" style="margin-top:16px;" href="sandbox.html">▶️ Launch sandbox</a>
+    </div>
+  </div>
+</section>
+
+<section id="match">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <h2>🎮 How a match is played</h2>
+      <p>Iron Acres matches are exactly <b>2 minutes 30 seconds</b> long. Points come from game objects,
+      a goal bonus and parking <b>in the home zone</b> at the end. That is why weapon 5 exists.</p>
+    </div>
+    <div class="cards">
+      <div class="card reveal"><h3>🕒 The clock rules</h3>
+        <p>150,000 ms total. At <b>t = 138,000 ms</b> the endgame alert turns on: LED blink + assisted
+        return home. In the last <span class="k">2,000 ms</span> driving is safe-locked for a guaranteed
+        park.</p></div>
+      <div class="card reveal"><h3>🧭 Pilot priority</h3>
+        <p>Gamepad sticks are ALWAYS more important than any assist. Weapons only act around the pilot's
+        intent — they never fight the sticks.</p></div>
+      <div class="card reveal"><h3>📊 The 3 P-metrics</h3>
+        <ul><li><b>P1</b> — spin right after a crash (&gt; 3°) must recover</li>
+            <li><b>P2</b> — cruise heading error must stay under 12°</li>
+            <li><b>P3</b> — park must nail inside the zone (rpm &lt; 1.5, &lt; 10 cm)</li></ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="install">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <h2>📥 Install on the robot — 3 ways</h2>
+    </div>
+    <div class="cards">
+      <div class="card reveal"><h3>🥇 XRPCode (official web editor)</h3>
+        <ol class="card_list" style="padding-left:18px;color:var(--dim);font-size:14.5px;line-height:1.7;">
+          <li>Open <a href="https://xrpcode.wpi.edu">xrpcode.wpi.edu</a> in Chrome, Edge or Opera.</li>
+          <li>Plug the XRP by USB and click <b>Connect</b> (WebSerial).</li>
+          <li>Create files in the filesystem panel and paste each <code>weaponN_*.py</code>,
+              <code>pilot_gamepad.py</code>, <code>main_match.py</code>.</li>
+          <li>In the Python tab run <code>import main_match</code>.</li>
+        </ol>
+      </div>
+      <div class="card reveal"><h3>🥈 USB serial (mpremote / Thonny)</h3>
+        <div class="code"><b># install the device tool</b>
+pip install mpremote
+
+<b># copy every file to the robot root (XRP plugged by USB)</b>
+mpremote fs cp weapon1_gyro_lock.py weapon2_torque_boost.py \
+  weapon3_curves.py weapon4_traction.py weapon5_endgame.py \
+  pilot_gamepad.py main_match.py :
+
+<b># open the REPL and start the match software</b>
+mpremote
+&gt;&gt;&gt; import main_match</div>
+      </div>
+      <div class="card reveal"><h3>🥉 Copa Robótica classroom</h3>
+        <ol style="padding-left:18px;color:var(--dim);font-size:14.5px;line-height:1.7;">
+          <li>Open <a href="https://programacion.coparobotica.com">programacion.coparobotica.com</a>.</li>
+          <li>Join the class with the class link + code from the coach.</li>
+          <li>Use the same USB connect flow as XRPCode to upload the files and run
+              <code>main_match</code>.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="tests">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <h2>🧪 Testing &amp; simulation</h2>
+      <p>Everything is validated by thousands of simulated matches — threshold gates in
+      <code>ci/battery.sh</code>, run 24/7 on GitHub Actions. We edit <b>only</b> the pilot and the
+      weapons; never the tests, never the F-fidelity metrics.</p>
+    </div>
+    <div class="card reveal">
+      <table>
+        <tr><th>Command</th><th>What it proves</th></tr>
+        <tr><td><code>python3 verify.py</code></td><td>12 math unit checks of the 5 weapons</td></tr>
+        <tr><td><code>python3 stress.py</code></td><td>30 Iron Acres matches with crashes and stalls — 30/30 approved</td></tr>
+        <tr><td><code>python3 mass_campaign.py</code></td><td>up to 300 Iron Acres matches per pilot profile (KID/GOOD/REGULAR/ADULT)</td></tr>
+        <tr><td><code>python3 games.py</code></td><td>DRIVE · SUMO · SUMO2 · SOCCER · SOCCER2 with F1–F5 stick fidelity</td></tr>
+        <tr><td><code>bash ci/battery.sh</code></td><td>all 13 CI thresholds green, else exit 1</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="trouble">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <h2>🚑 Troubleshooting quick table</h2>
+    </div>
+    <div class="cards">
+      <div class="card reveal"><h3>🔀 Robot rotates by itself after a hit</h3>
+        <p>Normal compensation window: P1 gives 3° to recover. If it keeps spinning, check the IMU is
+        still flat-mounted and recalibrate on the start pad (START edge resets the yaw target).</p></div>
+      <div class="card reveal"><h3>🐢 Wheels buzz but the robot doesn't move</h3>
+        <p>Torque boost is fighting a real stall: lift the robot and check the gearbox; on the track
+        verify the battery is above 7.4 V (BATTERY_COMP scales effort down).</p></div>
+      <div class="card reveal"><h3>🎯 It drifts to one side going straight</h3>
+        <p>Trim deadzone: the pilot's Y/X small offsets re-aim the locked heading. Increase TRIM_SAT
+        following offsets if the kid needs a bigger "nudge range" (calibration guide in the wiki).</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>🤖 <b>Team Robots Legends</b> — FUSAMO · BootCamp Aventura Transforma · XRP <b>Iron Acres</b> ⚔️</p>
+    <p>Made with <span class="heart">♥</span>, encoders, a very patient IMU and zero <code>time.sleep()</code>.</p>
+  </div>
+</footer>
+
+<script>
+const io = new IntersectionObserver(es => es.forEach(e => {
+  if (e.isIntersecting) e.target.classList.add('in');
+}), { threshold: 0.12 });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+</body>
+</html>

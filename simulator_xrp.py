@@ -242,7 +242,7 @@ import weapon5_endgame as A5
 import pilot_gamepad as MAIN
 
 # ---------- TEAM PARAMETERS (overridable, as on the track) ----------
-A5.V_RETORNO = 0.85     # the return is only viable if home is <= ~150 cm away
+A5.V_RETURN = 0.85     # the return is only viable if home is <= ~150 cm away
 DT_S = 0.02
 EVENTOS = []
 

@@ -71,7 +71,7 @@ def new_match(seed, MOD):
     A2.torque_boost.enable()
     endgame.connect(gyro)
     endgame.set_return(True)
-    A5.V_RETORNO = 0.85
+    A5.V_RETURN = 0.85
     imu = SIM.IMU
     imu.reset_yaw()
     console.connect(pad)
@@ -152,7 +152,7 @@ def new_match(seed, MOD):
                   % (t / 1000.0, console.mode_name(), endgame.is_endgame(),
                      endgame.return_on, gyro.enabled, endgame.home_distance(),
                      gyro.base_l, gyro.base_r, gyro.get_target(),
-                     SIM.IMU.get_yaw(), A5.V_RETORNO,
+                     SIM.IMU.get_yaw(), A5.V_RETURN,
                      pad.axes[1], pad.axes[0],
                      A3M.slew_fwd.v, A3M.slew_turn.v,
                      tb._cmd_l, tb._cmd_r,

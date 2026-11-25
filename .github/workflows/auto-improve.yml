@@ -1,0 +1,66 @@
+# =========================================================
+# AUTO-IMPROVE 24/7 — Team Robots Legends (FUSAMO)
+# The robot plays REAL simulated matches against itself, tries
+# tuning candidates for weapon constants (ci/autotune.json) and
+# if (and only if) the measured score improves, opens a DRAFT PR
+# with the tuned constants + evidence.
+# The robot proposes 🤝 the team decides (humans merge).
+# =========================================================
+name: auto-improve
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "15 */3 * * *"    # every 3 hours, offset from the battery
+  workflow_dispatch: {}       # "Run workflow" button to fire it now
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  improve:
+    name: Play matches → tune constants → open PR
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Autotune (math matches + candidates)
+        id: tune
+        run: |
+          python3 ci/autotune.py | tee autotune_run.log
+          echo "applied=$(cat /tmp/autotune_applied 2>/dev/null || echo no)" >> "$GITHUB_OUTPUT"
+
+      - name: Attach the tuning report
+        if: always()
+        run: cat /tmp/autotune_report.md 2>/dev/null || true >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Save tuning logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: autotune-logs
+          path: |
+            autotune_run.log
+            /tmp/autotune_report.md
+          retention-days: 90
+        continue-on-error: true
+
+      - name: Open improvement PR (draft)
+        if: steps.tune.outputs.applied == 'yes'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          BR="auto-improve/$(date +%Y%m%d-%H%M)"
+          git checkout -b "$BR"
+          git config user.name "Team Robots Legends"
+          git config user.email "teamrobotslegends@fusamo.local"
+          git add -A
+          git -c commit.gpgsign=false commit -m "🤖 Autotune: constants improved in simulated matches"
+          git push -u origin "$BR"
+          printf '%s\n' '🤖 Autonomous tuning proposal — simulated match evidence' > /tmp/pr-title.txt
+          gh pr create --repo "${{ github.repository }}" --draft --head "$BR" \
+            --title "$(cat /tmp/pr-title.txt)" \
+            --body-file /tmp/autotune_report.md

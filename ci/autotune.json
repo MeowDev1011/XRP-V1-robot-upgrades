@@ -1,0 +1,10 @@
+{
+  "eval": {
+    "env": { "MASS_N": "60", "MASS_W": "2", "MASS_PILOT": "KID" }
+  },
+  "targets": [
+    { "file": "weapon1_gyro_lock.py",  "const": "KP",         "values": [0.060, 0.068] },
+    { "file": "weapon3_curves.py",     "const": "MIX",        "values": [0.30, 0.40] },
+    { "file": "weapon5_endgame.py",    "const": "V_RETURN",   "values": [0.80, 0.90] }
+  ]
+}

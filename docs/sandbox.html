@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🧊 Team Robots Legends — 3D Sandbox</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  html, body { height: 100%; }
+  #stage { position: fixed; inset: 0; z-index: 0; }
+  .hud {
+    position: fixed; top: 68px; left: 50%; transform: translateX(-50%); z-index: 10;
+    display: flex; gap: 10px; align-items: center; pointer-events: none;
+  }
+  .hud .box {
+    background: rgba(11,16,32,0.8); border: 1px solid var(--line); border-radius: 12px;
+    padding: 8px 16px; font-weight: 700; font-size: 15px; backdrop-filter: blur(8px);
+  }
+  .hud .box em { font-style: normal; color: var(--acc2); }
+  #modes { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); z-index: 10; display: flex; gap: 8px; }
+  #modes .btn { padding: 9px 18px; font-size: 14px; cursor: pointer; pointer-events: auto; user-select: none; }
+  #modes .btn.active { background: var(--gold); color: #1c1500; border-color: transparent; }
+  #msg {
+    position: fixed; top: 42%; left: 50%; transform: translate(-50%,-50%); z-index: 11;
+    font-size: clamp(26px,5vw,46px); font-weight: 900; letter-spacing: -1px; color: #fff;
+    text-shadow: 0 4px 30px rgba(0,0,0,.6); pointer-events: none; opacity: 0; transition: opacity .4s;
+  }
+  #help {
+    position: fixed; bottom: 18px; left: 18px; z-index: 9; color: var(--dim); font-size: 13px;
+    background: rgba(11,16,32,0.7); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px;
+  }
+  #back { position: fixed; top: 68px; left: 18px; z-index: 10; }
+  #touch { position: fixed; right: 16px; bottom: 16px; z-index: 10; display: none; grid-template-columns: repeat(3,56px); grid-template-rows: repeat(2,56px); gap: 6px; }
+  #touch button { border-radius: 14px; border: 1px solid var(--line); background: rgba(255,255,255,.08); color: #fff; font-size: 20px; }
+  @media (pointer: coarse) { #touch { display: grid; } }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<div class="aurora"></div><div class="grid"></div>
+<div id="stage"></div>
+
+<div class="hud">
+  <div class="box">🎮 <span id="gameName">SUMO</span></div>
+  <div class="box">⏱ <em id="clock">45.0</em> s</div>
+  <div class="box">🏆 <em id="score">0</em></div>
+  <div class="box">💡 <em id="speed">0.00</em></div>
+</div>
+
+<div id="msg"></div>
+
+<a id="back" class="btn ghost" href="index.html">← Docs</a>
+
+<div id="modes">
+  <span class="btn active" data-g="SUMO">🤼 SUMO</span>
+  <span class="btn" data-g="SOCCER">⚽ SOCCER</span>
+  <span class="btn" data-g="DRIVE">🚗 DRIVE</span>
+</div>
+
+<div id="help">W A S D / arrows drive · SPACE brake · R restart · drag = orbit · wheel = zoom</div>
+
+<div id="touch">
+  <button data-k="ArrowLeft" style="grid-column:1;grid-row:1">◀</button>
+  <button data-k="KeyW" style="grid-column:2;grid-row:1">▲</button>
+  <button data-k="ArrowRight" style="grid-column:3;grid-row:1">▶</button>
+  <button data-k="KeyS" style="grid-column:2;grid-row:2">▼</button>
+</div>
+
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+
+/* ---------------- renderer / scene / camera ---------------- */
+const stage = document.getElementById('stage');
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+stage.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0b1020);
+scene.fog = new THREE.Fog(0x0b1020, 160, 520);
+
+const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 1000);
+let camYaw = Math.PI, camDist = 26, camPitch = 0.55;
+scene.add(new THREE.HemisphereLight(0xbfd4ff, 0x202846, 1.1));
+const sun = new THREE.DirectionalLight(0xffffff, 1.4);
+sun.position.set(40, 80, 30);
+scene.add(sun);
+
+const floor = new THREE.Mesh(
+  new THREE.PlaneGeometry(600, 600),
+  new THREE.MeshStandardMaterial({ color: 0x101736, roughness: 1 })
+);
+floor.rotation.x = -Math.PI / 2; scene.add(floor);
+const gridH = new THREE.GridHelper(600, 60, 0x22306b, 0x1a2450);
+gridH.position.y = 0.02; scene.add(gridH);
+
+/* ---------------- robot builder ---------------- */
+function makeRobot(color, accent) {
+  const g = new THREE.Group();
+  const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.4, metalness: 0.25 });
+  const body = new THREE.Mesh(new THREE.BoxGeometry(7.2, 2.6, 9.4), mat);
+  body.position.y = 2.3; g.add(body);
+  const cabin = new THREE.Mesh(new THREE.BoxGeometry(4.6, 1.4, 4.6),
+    new THREE.MeshStandardMaterial({ color: accent, roughness: 0.3, metalness: 0.4 }));
+  cabin.position.set(0, 4.0, -0.4); g.add(cabin);
+  const eye = new THREE.Mesh(new THREE.SphereGeometry(0.55),
+    new THREE.MeshBasicMaterial({ color: 0x22d3a8 }));
+  eye.position.set(0, 4.2, 2.1); g.add(eye);
+  const wheelGeo = new THREE.CylinderGeometry(1.7, 1.7, 1.1, 18);
+  const wheelMat = new THREE.MeshStandardMaterial({ color: 0x0d0d12, roughness: 0.9 });
+  const wm = new THREE.MeshStandardMaterial({ color: 0xffcb47, roughness: 0.5 });
+  [[-3.4, 3.9], [3.4, 3.9], [-3.4, -3.9], [3.4, -3.9]].forEach(([x, z]) => {
+    const w = new THREE.Mesh(wheelGeo, wheelMat);
+    w.rotation.z = Math.PI / 2; w.position.set(x, 1.7, z); g.add(w);
+    const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.7, 1.25, 12), wm);
+    cap.rotation.z = Math.PI / 2; cap.position.set(x, 1.7, z); g.add(cap);
+  });
+  return g;
+}
+const hero = makeRobot(0x2763d8, 0x4f8cff);
+scene.add(hero);
+const foe = makeRobot(0xd8433b, 0xff8a5c);
+scene.add(foe);
+const ghost = makeRobot(0x27a06b, 0x22d3a8);
+scene.add(ghost);
+
+/* ---------------- world objects ---------------- */
+const ring = new THREE.Mesh(new THREE.CylinderGeometry(42, 42, 1.2, 64),
+  new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.7 }));
+ring.position.y = 0.6; scene.add(ring);          // sumo dohyo
+const ringEdge = new THREE.Mesh(new THREE.TorusGeometry(42, 0.8, 12, 64),
+  new THREE.MeshBasicMaterial({ color: 0xffcb47 }));
+ringEdge.rotation.x = Math.PI / 2; ringEdge.position.y = 1.3; scene.add(ringEdge);
+
+const ball = new THREE.Mesh(new THREE.SphereGeometry(3.2, 24, 18),
+  new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5 }));
+ball.visible = false; ball.position.y = 3.2; scene.add(ball);
+
+const goal = new THREE.Group();
+goal.visible = false; scene.add(goal);
+
+/* doors for DRIVE */
+const doors = new THREE.Group(); scene.add(doors);
+const doorGeo = new THREE.BoxGeometry(16, 5, 1);
+for (let i = 0; i < 3; i++) {
+  const d = new THREE.Mesh(doorGeo,
+    new THREE.MeshStandardMaterial({ color: 0x4f8cff, emissive: 0x4f8cff, emissiveIntensity: 0.5 }));
+  d.position.y = 2.5; doors.add(d);
+}
+
+/* ---------------- game state ---------------- */
+const R_BOT = 4.6, R_BALL = 3.2;
+const S = {};                      // current game state
+const ui = {
+  name: document.getElementById('gameName'), clock: document.getElementById('clock'),
+  score: document.getElementById('score'), speed: document.getElementById('speed'),
+  msg: document.getElementById('msg'),
+};
+let mode = '';
+
+function reset(g) {
+  mode = g; document.querySelectorAll('#modes .btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.g === g));
+  ui.name.textContent = g;
+  S.keys = {}; S.t = 0; S.done = false;
+  S.v = 0; S.w = 0; S.h = 0;                       // speed, turn rate, heading
+  S.px = 0; S.pz = 0;                              // hero pos
+  S.score = 0;
+  foe.visible = ghost.visible = ball.visible = goal.visible = ring.visible = ringEdge.visible = false;
+  doors.visible = false;
+
+  if (g === 'SUMO') {
+    ring.visible = ringEdge.visible = true;
+    S.dur = 45; S.px = 0; S.pz = 22; S.h = Math.PI;
+    foe.visible = true; S.fx = 0; S.fz = -20; S.fh = 0; S.fv = 0;
+    ring.position.set(0, 0.6, 0);
+  } else if (g === 'SOCCER') {
+    S.dur = 120; S.px = 0; S.pz = 55;
+    ball.visible = true; S.bx = 0; S.bz = 0; S.bvx = 0; S.bvz = 0;
+    buildGoal();
+    foe.visible = true; S.fx = 0; S.fz = -34; S.fh = 0;
+    S.score = 0; S.concede = 0;
+  } else { /* DRIVE */
+    S.dur = 60; S.px = 0; S.pz = 70; S.h = Math.PI;
+    doors.visible = true; S.door = 0; S.laps = 0;
+    placeDoors();
+  }
+  show('');
+}
+
+function buildGoal() {
+  while (goal.children.length) goal.remove(goal.children[0]);
+  const postM = new THREE.MeshStandardMaterial({ color: 0xffffff });
+  const bar = new THREE.Mesh(new THREE.BoxGeometry(30, 1.4, 1.4), postM);
+  bar.position.set(0, 9, 0); goal.add(bar);
+  [[-15, 4.5], [15, 4.5]].forEach(([x, y]) => {
+    const p = new THREE.Mesh(new THREE.BoxGeometry(1.4, 9, 1.4), postM);
+    p.position.set(x, y, 0); goal.add(p);
+  });
+  const net = new THREE.Mesh(new THREE.PlaneGeometry(30, 9),
+    new THREE.MeshBasicMaterial({ color: 0x22d3a8, transparent: true, opacity: 0.15, side: 2 }));
+  net.position.set(0, 4.5, -2); goal.add(net);
+  goal.position.set(0, 0, -78);
+}
+
+const doorX = [-34, 0, 34];
+function placeDoors() {
+  doors.children.forEach((d, i) => {
+    d.position.set(doorX[i], 2.5, 0); d.rotation.y = 0;
+    d.material.color.setHex(i === S.door ? 0x22d3a8 : 0x4f8cff);
+    d.material.emissive.setHex(i === S.door ? 0x22d3a8 : 0x4f8cff);
+  });
+}
+
+let msgT = 0;
+function show(t) { ui.msg.textContent = t; ui.msg.style.opacity = t ? 1 : 0; msgT = t ? 2.6 : 0; }
+
+/* ---------------- input ---------------- */
+addEventListener('keydown', e => { S.keys[e.code] = true; if (e.code === 'KeyR') reset(mode); });
+addEventListener('keyup', e => { S.keys[e.code] = false; });
+document.querySelectorAll('#touch button').forEach(b => {
+  const k = b.dataset.k;
+  ['pointerdown', 'pointerup', 'pointerleave'].forEach(ev =>
+    b.addEventListener(ev, e => { S.keys[k] = ev === 'pointerdown'; e.preventDefault(); }));
+});
+let drag = null;
+renderer.domElement.addEventListener('pointerdown', e => drag = { x: e.clientX, y: e.clientY });
+addEventListener('pointermove', e => {
+  if (!drag) return;
+  camYaw += (e.clientX - drag.x) * 0.005;
+  camPitch = Math.min(1.3, Math.max(0.15, camPitch - (e.clientY - drag.y) * 0.004));
+  drag = { x: e.clientX, y: e.clientY };
+});
+addEventListener('pointerup', () => drag = null);
+addEventListener('wheel', e => { camDist = Math.min(70, Math.max(12, camDist + e.deltaY * 0.03)); });
+document.querySelectorAll('#modes .btn').forEach(b =>
+  b.addEventListener('click', () => reset(b.dataset.g)));
+
+/* ---------------- simple arcade physics ---------------- */
+const KID = { ACC: 26, BRK: 40, TURN: 2.1, VMAX: 30, FRICT: 8 };
+
+function stepHero(dt, vMax) {
+  const k = S.keys;
+  const fwd = (k['KeyW'] || k['ArrowUp'] ? 1 : 0) - (k['KeyS'] || k['ArrowDown'] ? 1 : 0);
+  const turn = (k['KeyA'] || k['ArrowLeft'] ? 1 : 0) - (k['KeyD'] || k['ArrowRight'] ? 1 : 0);
+  const brake = k['Space'];
+  if (fwd > 0) S.v = Math.min(vMax, S.v + KID.ACC * dt);
+  else if (fwd < 0) S.v = Math.max(-vMax * 0.4, S.v - KID.ACC * dt);
+  else if (brake) S.v -= Math.sign(S.v) * KID.BRK * dt;
+  else S.v -= Math.sign(S.v) * Math.min(Math.abs(S.v), KID.FRICT * dt);
+  S.w = turn * KID.TURN * (0.45 + 0.55 * Math.min(1, Math.abs(S.v) / vMax));
+  S.h += S.w * dt;
+  S.px += Math.sin(S.h) * S.v * dt;
+  S.pz += Math.cos(S.h) * S.v * dt;
+}
+
+function collide(a, b, ra, rb, massA, massB) {
+  const dx = b.x - a.x, dz = b.z - a.z, d = Math.hypot(dx, dz) || 0.01;
+  const ov = ra + rb - d;
+  if (ov <= 0) return null;
+  const nx = dx / d, nz = dz / d, push = ov / (1 / massA + 1 / massB);
+  a.x -= nx * push / massA; a.z -= nz * push / massA;
+  b.x += nx * push / massB; b.z += nz * push / massB;
+  return { nx, nz };
+}
+
+const heroObj = { x: 0, z: 0 }, foeObj = { x: 0, z: 0 }, ballObj = { x: 0, z: 0 };
+
+function update(dt) {
+  if (S.done) { S.t += dt; return; }
+  S.t += dt;
+  const left = Math.max(0, S.dur - S.t);
+
+  if (mode === 'SUMO') {
+    stepHero(dt, KID.VMAX);
+    /* rival brain: drift toward player then ram */
+    const ax = S.px - S.fx, az = S.pz - S.fz, ad = Math.hypot(ax, az) || 0.01;
+    S.fh += Math.max(-1.6 * dt, Math.min(1.6 * dt,
+      Math.atan2(Math.sin(Math.atan2(ax, az) - S.fh), Math.cos(Math.atan2(ax, az) - S.fh))));
+    const wantV = ad > 6 ? 22 : 0;
+    S.fv += Math.sign(wantV - S.fv) * Math.min(Math.abs(wantV - S.fv), 30 * dt);
+    S.fx += Math.sin(S.fh) * S.fv * dt; S.fz += Math.cos(S.fh) * S.fv * dt;
+
+    heroObj.x = S.px; heroObj.z = S.pz; foeObj.x = S.fx; foeObj.z = S.fz;
+    collide(heroObj, foeObj, R_BOT, R_BOT, 1, 0.8);
+    S.px = heroObj.x; S.pz = heroObj.z; S.fx = foeObj.x; S.fz = foeObj.z;
+
+    /* ring push-out */
+    const hr = Math.hypot(S.px, S.pz);
+    if (hr > 41) { S.px *= 41 / hr; S.pz *= 41 / hr; S.v *= 0.3; }
+    const fr = Math.hypot(S.fx, S.fz);
+    if (fr > 40.5) { end('🏆 YOU WIN! You pushed the rival out! 🤼', 'SUMO'); return; }
+    if (left <= 0) { end('🤝 DRAW — nobody left the ring', 'SUMO'); return; }
+  }
+
+  if (mode === 'SOCCER') {
+    stepHero(dt, KID.VMAX);
+    /* simple keeper rival shadows the goal line */
+    S.fx += (S.bx * 0.6 - S.fx) * Math.min(1, 2.2 * dt);
+    S.fz += (-70 - S.fz) * Math.min(1, 1.4 * dt);
+    S.fh = Math.PI;
+    /* ball friction + kick on contact */
+    S.bvx -= S.bvx * 1.2 * dt; S.bvz -= S.bvz * 1.2 * dt;
+    S.bx += S.bvx * dt; S.bz += S.bvz * dt;
+    heroObj.x = S.px; heroObj.z = S.pz; ballObj.x = S.bx; ballObj.z = S.bz;
+    const kickN = collide(heroObj, ballObj, R_BOT + 1.0, R_BALL, 1, 0.12);
+    if (kickN) {
+      const sp = Math.max(18, Math.hypot(S.bvx, S.bvz) + Math.abs(S.v) * 1.6 + 14);
+      S.bvx = -kickN.nx * sp; S.bvz = -kickN.nz * sp;
+    }
+    if (S.bz < -76.8 && Math.abs(S.bx) < 15) { S.score++; S.bx = 0; S.bz = 6; S.bvx = 0; S.bvz = 0; }
+    if (S.pz > 78) { S.pz = 78; S.v *= 0.3; }
+    if (S.pz < -78) S.pz = -78;
+    if (Math.abs(S.px) > 55) { S.px = Math.sign(S.px) * 55; S.v *= 0.3; }
+    if (S.bz > 78) { S.bz = 78; S.bvz *= -0.4; }
+    if (Math.abs(S.bx) > 53) { S.bx = Math.sign(S.bx) * 53; S.bvx *= -0.4; }
+    if (left <= 0) {
+      end(S.score - S.concede > 0 ? '🏆 GOAL!' : '⚽ Time! No goals scored', 'SOCCER');
+      return;
+    }
+  }
+
+  if (mode === 'DRIVE') {
+    stepHero(dt, KID.VMAX * 0.8);
+    if (S.pz < 8 && S.pz > -8) {
+      const tgt = doorX[S.door];
+      if (Math.abs(S.px - tgt) < 9) {
+        S.score += 1; S.door = (S.door + 1) % 3;
+        if (S.door === 0) S.laps += 1;
+        placeDoors();
+      }
+    }
+    if (Math.abs(S.px) > 55) { S.px = Math.sign(S.px) * 55; S.v *= 0.3; }
+    if (S.pz > 78) { S.pz = 78; S.v *= 0.3; }
+    if (S.pz < -78) { S.pz = -78; S.v *= 0.3; }
+    if (left <= 0) { end(`🏁 Time! Doors: ${S.score} · full laps: ${S.laps}`, 'DRIVE'); return; }
+  }
+
+  if (msgT > 0) { msgT -= dt; if (msgT <= 0) show(''); }
+}
+
+function end(txt) { S.done = true; show(txt); }
+
+/* ---------------- render ---------------- */
+function place(mesh, x, y, z, h) {
+  mesh.position.set(x, y, z);
+  if (h !== undefined) { mesh.rotation.y = h; }
+}
+
+function render() {
+  requestAnimationFrame(render);
+  const dt = Math.min(0.05, clock.getDelta());
+  update(dt);
+
+  if (mode === 'SUMO') place(foe, S.fx, 1.2, S.fz, S.fh);
+  if (mode === 'SOCCER') { place(foe, S.fx, 1.2, S.fz, S.fh); place(ball, S.bx, 3.2, S.bz); }
+  place(hero, S.px, 1.2, S.pz, S.h);
+  ghost.visible = false;
+
+  /* camera follows hero */
+  const cx = S.px + Math.sin(camYaw) * camDist * Math.cos(camPitch);
+  const cz = S.pz + Math.cos(camYaw) * camDist * Math.cos(camPitch);
+  const cy = 4 + Math.sin(camPitch) * camDist;
+  camera.position.set(cx, cy, cz);
+  camera.lookAt(S.px, 2.5, S.pz);
+
+  ui.clock.textContent = S.done ? '0.0' : Math.max(0, S.dur - S.t).toFixed(1);
+  ui.score.textContent = S.score;
+  ui.speed.textContent = (Math.abs(S.v) / KID.VMAX).toFixed(2);
+
+  renderer.render(scene, camera);
+}
+const clock = new THREE.Clock();
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+reset('SUMO');
+render();
+</script>
+</body>
+</html>

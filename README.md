@@ -18,9 +18,8 @@
 
 ---
 
-## 🌐 Language / Idioma
+## ✅ Repo language
 
-**🇬🇧 English** (this file) · [🇪🇸 Español](README.es.md)
 
 > 🚀 **New!** 📖 [GitHub Wiki](https://github.com/MeowDev1011/XRP-V1-robot-upgrades/wiki) — step-by-step guides with emojis.
 > 🌐 **New!** 🎨 [Documentation website + 3D games sandbox](docs/index.html) — DRIVE / SUMO / SOCCER, play in the browser.
@@ -282,13 +281,13 @@ Useful env flags for debugging:
 - 🔘 On demand (**Run workflow** button, `workflow_dispatch`)
 - 📦 Logs of every battery are uploaded as artifacts (**90-day retention**)
 
-The **daily enhancement workflow** (`daily-improve.yml`) adds one more guard: it replays the battery, and **if a threshold regresses it automatically opens a GitHub Issue** titled with the failing metric — the team gets told the same day without watching CI. Improvement **proposals** are attached to that same issue; but no automated edit ever lands on the robot code without a human reviewing the cause first.
+The **auto-improve workflow** (`auto-improve.yml`) goes one step further and runs **every 3 hours** too: `ci/autotune.py` plays real simulated matches to set a **baseline**, tries the tuning candidates listed in `ci/autotune.json` (one weapon constant at a time), and keeps a candidate **only if the measured score improves**. If something survived, it opens a **draft PR** with the changed constants + the evidence table — 🤝 *the robot proposes, humans merge*. And `daily-improve.yml` packs an even bigger battery once a day, automatically opening a GitHub Issue when any threshold regresses.
 
 Quality thresholds enforced (`ci/battery.sh`) — the run turns **red** if ANY falls:
 
 | Battery | Metric | Threshold |
 |---|---|---|
-| `verifica` | math tests | 12/12 |
+| `verify.py` | math tests | 12/12 |
 | `stress` (30 matches) | matches approved | 30/30 |
 | Iron Acres KID (n300) | Park in zone | ≥ 90% |
 | Iron Acres KID (n300) | STRICT matches (zero faults) | ≥ 60% |
@@ -302,7 +301,7 @@ Quality thresholds enforced (`ci/battery.sh`) — the run turns **red** if ANY f
 | SOCCER2 2v2 (n100) | Goals/match | ≥ 3.0 |
 | SOCCER2 ADULT (n40) | Win % | ≥ 50% |
 
-> 🛡️ **When a metric regresses, we edit `pilot_gamepad.py` / `arma*.py` — NEVER the test harnesses or their fidelity metrics (F-metrics).** CI is an alarm, not an auto-editor.
+> 🛡️ **When a metric regresses, we edit `pilot_gamepad.py` / `weapon*.py` — NEVER the test harnesses or their fidelity metrics (F-metrics).** CI is an alarm, not an auto-editor.
 
 ---
 
@@ -385,7 +384,9 @@ No — it's a fidelity plant (encoder inertia, IMU drift, programmed stalls, cra
 
 ## 📖 Wiki
 
-The [GitHub Wiki](https://github.com/MeowDev1011/XRP-V1-robot-upgrades/wiki) is the living handbook of the team (in English, with emojis and lots of markdown):
+The [GitHub Wiki](https://github.com/MeowDev1011/XRP-V1-robot-upgrades/wiki) is the living
+handbook of the team (in English, with emojis and lots of markdown). 🗂️ Its pages are also
+kept in the repo under [`wiki/`](wiki/README.md) so every edit is versioned:
 
 | Page | What you will find |
 |---|---|

@@ -1,8 +1,8 @@
 # =========================================================
 # 24/7 BATTERY — Team Robots Legends (FUSAMO)
 # Every 3 hours (or on demand) it plays the full package:
-#   Iron Acres (300 KID matches + 100 ADULTO + 100 SIN_ASIST)
-#   DRIVE / SUMO / SUMO2 / FUTBOL / FUTBOL2 (100 KID)
+#   Iron Acres (300 KID matches + 100 ADULT + 100 NO_ASSIST)
+#   DRIVE / SUMO / SUMO2 / SOCCER / SOCCER2 (100 KID)
 #   30-match stress + 12 math unit tests
 # If a metric drops below its threshold the run goes RED and
 # the log of each battery is kept as an artifact to review
@@ -31,9 +31,9 @@ jobs:
       - name: Play the full package (with quality thresholds)
         id: battery
         run: |
-          export BATERIA_LOGS="$RUNNER_TEMP/logs"
-          mkdir -p "$BATERIA_LOGS"
-          bash ci/battery.sh | tee "$BATERIA_LOGS/output.txt"
+          export BATTERY_LOGS="$RUNNER_TEMP/logs"
+          mkdir -p "$BATTERY_LOGS"
+          bash ci/battery.sh | tee "$BATTERY_LOGS/output.txt"
           cat /tmp/summary.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Save battery logs

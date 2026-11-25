@@ -31,9 +31,9 @@ jobs:
       - name: Play the expanded battery
         id: battery
         run: |
-          export BATERIA_LOGS="$RUNNER_TEMP/logs"
-          mkdir -p "$BATERIA_LOGS"
-          bash ci/battery.sh | tee "$BATERIA_LOGS/output.txt"
+          export BATTERY_LOGS="$RUNNER_TEMP/logs"
+          mkdir -p "$BATTERY_LOGS"
+          bash ci/battery.sh | tee "$BATTERY_LOGS/output.txt"
           cat /tmp/summary.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Open an issue when a threshold regresses

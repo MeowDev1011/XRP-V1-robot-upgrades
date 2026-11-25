@@ -230,7 +230,7 @@ def new_match(seed, MOD):
     A2.torque_boost.enable()
     endgame.connect(gyro)
     endgame.set_return(VARIANT != "NO_ASSIST")
-    A5.V_RETORNO = 0.85
+    A5.V_RETURN = 0.85
     imu = SIM.IMU
     imu.reset_yaw()
     console.connect(pad)
