@@ -6,7 +6,7 @@
 
 **FUSAMO · BootCamp Aventura Transforma**
 
-![CI](https://github.com/MeowDev1011/XRP-V1-robot-upgrades/actions/workflows/baterias.yml/badge.svg)
+![CI](https://github.com/MeowDev1011/XRP-V1-robot-upgrades/actions/workflows/battery-24-7.yml/badge.svg)
 ![MicroPython](https://img.shields.io/badge/MicroPython-XRPLib-blue)
 ![Platform](https://img.shields.io/badge/Platform-XRP%20(Pico%20W)-purple)
 ![License](https://img.shields.io/badge/License-MIT-green)
@@ -22,10 +22,14 @@
 
 **🇬🇧 English** (this file) · [🇪🇸 Español](README.es.md)
 
+> 🚀 **New!** 📖 [GitHub Wiki](https://github.com/MeowDev1011/XRP-V1-robot-upgrades/wiki) — step-by-step guides with emojis.
+> 🌐 **New!** 🎨 [Documentation website + 3D games sandbox](docs/index.html) — DRIVE / SUMO / SOCCER, play in the browser.
+
 ---
 
-## 📑 Table of Contents
+## 📚 Table of Contents
 
+0. [🌐 Documentation website + 3D sandbox](#-documentation-website--3d-sandbox)
 1. [⚡ What is this?](#-what-is-this)
 2. [⚔️ The 5 Secret Weapons](#%EF%B8%8F-the-5-secret-weapons)
 3. [🎮 How the match is played](#-how-the-match-is-played)
@@ -42,8 +46,16 @@
 11. [📚 Lessons from 800+ simulated matches](#-lessons-from-800-simulated-matches)
 12. [❓ FAQ](#-faq)
 13. [📜 License & credits](#-license--credits)
+14. [📖 Wiki](#-wiki)
 
 ---
+
+## 🌐 Documentation website + 3D sandbox
+
+Beyond this README, the project ships with two extra layers of docs:
+
+- **🌍 [docs/index.html](docs/index.html)** — a self-contained website (HTML + CSS + JS, no build step, works offline) with animated hero, cards for every weapon, full game rules and a **Three.js 3D sandbox** where you can play the three simulation games in the browser: 🚗 **DRIVE** (individual driving circuit), 🤼 **SUMO** (1v1 and 2v2 push-out) and ⚽ **SOCCER** (1v1 and 2v2). 🏟️ Iron Acres is documented but not sandboxed (it needs the full field model).
+- **📖 [GitHub Wiki](https://github.com/MeowDev1011/XRP-V1-robot-upgrades/wiki)** — many pages with emojis: what this robot is, installation, how to upload files, controls, the 5 weapons, testing & simulation, troubleshooting, calibration, collaboration guide.
 
 ## ⚡ What is this?
 
@@ -83,8 +95,8 @@ Transforms stick inputs with a smooth **cubic curve**: `y = MIX·v + (1−MIX)·
 
 ### 🛞 Weapon 4 — Traction & Brake Assist (Active Braking)
 Owns the motors (single final writer):
-- **Acceleration ramp** (`RAMPA_MAX=3.0`/s) so wheels never slip from a standstill.
-- **Controlled reverse pulse** (`PULSO_K=0.012`) read back via encoders when the command returns to zero — the robot is **nailed to its exact spot** with no inertia slide.
+- **Acceleration ramp** (`RAMP_MAX=3.0`/s) so wheels never slip from a standstill.
+- **Controlled reverse pulse** (`PULSE_K=0.012`) read back via encoders when the command returns to zero — the robot is **nailed to its exact spot** with no inertia slide.
 
 ### ⏱️ Weapon 5 — Auto-Endgame (Clock + Home Odometry)
 - Counts the exact **150,000 ms** of the match.
@@ -122,22 +134,22 @@ For the exact button map see [🕹️ Gamepad controls](#%EF%B8%8F-gamepad-contr
 Only **one** module ever writes to the motors; the chain flows strictly in one direction so assists can never fight each other.
 
 ```
-piloto_gamepad.py (50 Hz loop; modes STOP / STRAIGHT / TURN / SETTLE / RETURN)
+pilot_gamepad.py (50 Hz loop; modes STOP / STRAIGHT / TURN / SETTLE / RETURN)
         │
         ▼
-arma3_curvas.py  (cubic response + slew)      ← Weapon 3
+weapon3_curves.py  (cubic response + slew)      ← Weapon 3
         │
         ▼
-arma2_torque_boost.py  (anti-stall boost)      ← Weapon 2
+weapon2_torque_boost.py  (anti-stall boost)      ← Weapon 2
         │
         ▼
-arma4_traccion.py  (ramp + active brake)       ← Weapon 4  ⟵ ONLY writer to motors
-        └── arma1_gyro_lock.py (PID hooked inside)   ← Weapon 1
+weapon4_traction.py  (ramp + active brake)       ← Weapon 4  ⟵ ONLY writer to motors
+        └── weapon1_gyro_lock.py (PID hooked inside)   ← Weapon 1
         │
         ▼
    DRIVETRAIN.set_effort(l, r)
 
-arma5_endgame.py (clock + odometry + live return)   ← Weapon 5 (20 Hz task)
+weapon5_endgame.py (clock + odometry + live return)   ← Weapon 5 (20 Hz task)
 ```
 
 ---
@@ -145,17 +157,17 @@ arma5_endgame.py (clock + odometry + live return)   ← Weapon 5 (20 Hz task)
 ## 🔌 Installation on the robot (3 ways)
 
 > **Goal in all methods:** copy the software to the **root of the XRP's filesystem**
-> (`main_partida.py` + the 5 weapons + `piloto_gamepad.py`), then run
-> `main_partida.py` once before the match starts.
+> (`main_match.py` + the 5 weapons + `pilot_gamepad.py`), then run
+> `main_match.py` once before the match starts.
 
 **The 8 files to load:**
 
 ```
-main_partida.py          ← entry point (run this one)
-piloto_gamepad.py        ← gamepad driver
-arma1_gyro_lock.py        arma2_torque_boost.py
-arma3_curvas.py           arma4_traccion.py
-arma5_endgame.py         curvas.py (if your copy references it)
+main_match.py          ← entry point (run this one)
+pilot_gamepad.py        ← gamepad driver
+weapon1_gyro_lock.py        weapon2_torque_boost.py
+weapon3_curves.py           weapon4_traction.py
+weapon5_endgame.py         curvas.py (if your copy references it)
 ```
 
 ### Method 1 — XRPCode (official web editor) 🥇 *recommended*
@@ -167,10 +179,10 @@ arma5_endgame.py         curvas.py (if your copy references it)
 3. Click **Connect / Serial** in the editor toolbar and **select the robot's port** in the browser dialog.
 4. Create a new **Python** project.
 5. **Copy the 8 files to the robot**: use the **Filesystem panel** (left sidebar) to upload them to the robot's root filesystem. If your editor version has no upload button, create each file with **New File**, paste its contents, and **Save** — same result.
-6. **Start**: open `main_partida.py` and press **Run (▶)**. The board then tracks the gamepad for the whole match — you may close the editor afterward without stopping the program.
+6. **Start**: open `main_match.py` and press **Run (▶)**. The board then tracks the gamepad for the whole match — you may close the editor afterward without stopping the program.
 7. First boot: the XRPLib IMU **calibrates once** with the robot still (`imu.calibrate(1.0)` — the only intentional pause in the system, done by the official library, not by us).
 
-> 💡 **Blockly integration**: each weapon is a plain MicroPython module with a clean API (`set_base()`, `feed()`, `attach()`, `enable()`…), so you can also invoke them from Python blocks in Blockly (`import arma1_gyro_lock`) and mix with your own custom blocks.
+> 💡 **Blockly integration**: each weapon is a plain MicroPython module with a clean API (`set_base()`, `feed()`, `attach()`, `enable()`…), so you can also invoke them from Python blocks in Blockly (`import weapon1_gyro_lock`) and mix with your own custom blocks.
 
 ### Method 2 — USB serial (mpremote / Thonny)
 
@@ -181,17 +193,17 @@ Classic REPL workflow from a PC:
 pip install mpremote
 
 # Copy every file to the robot's root (XRP plugged in by USB)
-mpremote cp main_partida.py :/
-mpremote cp piloto_gamepad.py :/
-mpremote cp arma1_gyro_lock.py :/
-mpremote cp arma2_torque_boost.py :/
-mpremote cp arma3_curvas.py :/
-mpremote cp arma4_traccion.py :/
-mpremote cp arma5_endgame.py :/
+mpremote cp main_match.py :/
+mpremote cp pilot_gamepad.py :/
+mpremote cp weapon1_gyro_lock.py :/
+mpremote cp weapon2_torque_boost.py :/
+mpremote cp weapon3_curves.py :/
+mpremote cp weapon4_traction.py :/
+mpremote cp weapon5_endgame.py :/
 
 # Open the REPL and start the match software
 mpremote
-# >>> import main_partida
+# >>> import main_match
 ```
 
 Alternative: **Thonny** (`Tools → Options → Interpreter → MicroPython (generic)`), then right-click each file → *Upload to /*.
@@ -206,9 +218,9 @@ How to use it with this project:
 
 1. Ask your coach for the **class link with its edition code** (BootCamp Aventura Transforma uses these for the XRP module).
 2. Open that link in Chrome/Edge — it loads the lesson's editor/emulator for your group.
-3. **Paste this project's files** in that editor as plain Python text (`main_partida.py` and each weapon, exactly as-is).
+3. **Paste this project's files** in that editor as plain Python text (`main_match.py` and each weapon, exactly as-is).
 4. Connect the robot the same way XRPCode does (USB serial + WebSerial in the browser): connect, select the port, upload/run the files.
-5. **Simulator-only mode** (no robot present): clone this repo on a PC (or Pydroid on Android) and run `python3 simulador_xrp.py` to play full 150 s matches with a virtual gamepad against the same code that goes on the board.
+5. **Simulator-only mode** (no robot present): clone this repo on a PC (or Pydroid on Android) and run `python3 simulator_xrp.py` to play full 150 s matches with a virtual gamepad against the same code that goes on the board.
 
 > ℹ️ If your Copa Robótica link says "no valid edition code", ask your coach to re-share the **class edition link** — the edition code is what unlocks the editable code area; the plain student view is read-only.
 
@@ -232,65 +244,65 @@ How to use it with this project:
 
 ## 🧪 Running the tests locally
 
-All tests run on a **PC simulator** (`simulador_xrp.py`) — a physical plant with stubs for XRPLib/uasyncio, a virtual clock, a virtual gamepad and the pilot model. Nothing touches the real robot.
+All tests run on a **PC simulator** (`simulator_xrp.py`) — a physical plant with stubs for XRPLib/uasyncio, a virtual clock, a virtual gamepad and the pilot model. Nothing touches the real robot.
 
 ```bash
-python3 _verifica.py     # 12/12 math unit tests of the weapons
-python3 _estres.py       # 30/30 stress matches (random chaos)
-python3 simulador_xrp.py # one full 150 s match with a virtual gamepad
+python3 verify.py     # 12/12 math unit tests of the weapons
+python3 stress.py       # 30/30 stress matches (random chaos)
+python3 simulator_xrp.py # one full 150 s match with a virtual gamepad
 
 # Mass campaigns (Iron Acres scoring, multiprocess)
-MASIVA_N=400 python3 _masiva.py
-MASIVA_PILOTO=ADULTO MASIVA_N=100 python3 _masiva.py
-MASIVA_VAR=SIN_ASIST MASIVA_N=200 python3 _masiva.py   # value of the weapons
+MASS_N=400 python3 mass_campaign.py
+MASS_PILOT=ADULT MASS_N=100 python3 mass_campaign.py
+MASS_VARIANT=NO_ASSIST MASS_N=200 python3 mass_campaign.py   # value of the weapons
 
 # Individual & team games
-JUEGOS_MODO=TODOS JUEGOS_N=100 JUEGOS_PILOTO=KID python3 _juegos.py
-JUEGOS_MODO=SUMO JUEGOS_N=300 JUEGOS_PILOTO=KID python3 _juegos.py
-JUEGOS_MODO=TODOS JUEGOS_N=40 JUEGOS_PILOTO=ADULTO python3 _juegos.py  # reference
+GAMES_MODE=ALL GAMES_N=100 GAMES_PILOT=KID python3 games.py
+GAMES_MODE=SUMO GAMES_N=300 GAMES_PILOT=KID python3 games.py
+GAMES_MODE=ALL GAMES_N=40 GAMES_PILOT=ADULT python3 games.py  # reference
 ```
 
 Useful env flags for debugging:
 
 | Variable | Purpose |
 |---|---|
-| `MASIVA_PILOTO` | Pilot profile: `KID` (default) / `BUENO` / `REGULAR` / `ADULTO` |
-| `MASIVA_VAR` | `ARMA` (full assist, default) or `SIN_ASIST` (no weapons) |
-| `MASIVA_N` / `JUEGOS_N` | Number of matches per run |
-| `MASIVA_DEBUG` / `ESTRES_DEBUG` / `JUEGOS_DEBUG` / `JUEGOS_TRACE` | Verbose traces for hunting failures |
+| `MASS_PILOT` | Pilot profile: `KID` (default) / `GOOD` / `REGULAR` / `ADULT` |
+| `MASS_VARIANT` | `ASSIST` (full assist, default) or `NO_ASSIST` (no weapons) |
+| `MASS_N` / `GAMES_N` | Number of matches per run |
+| `MASS_DEBUG` / `STRESS_DEBUG` / `GAMES_DEBUG` / `GAMES_TRACE` | Verbose traces for hunting failures |
 
 ---
 
 ## 🤖 24/7 battery in GitHub Actions
 
-`.github/workflows/baterias.yml` runs the **entire battery continuously**:
+`.github/workflows/battery-24-7.yml` runs the **entire battery continuously**:
 
 - ⏰ **Every 3 hours** (`cron 0 */3 * * *`) — around the clock
 - 🚀 On every **push to `main`**
 - 🔘 On demand (**Run workflow** button, `workflow_dispatch`)
 - 📦 Logs of every battery are uploaded as artifacts (**90-day retention**)
 
-The **daily enhancement workflow** (`mejora-diaria.yml`) adds one more guard: it replays the battery, and **if a threshold regresses it automatically opens a GitHub Issue** titled with the failing metric — the team gets told the same day without watching CI. Improvement **proposals** are attached to that same issue; but no automated edit ever lands on the robot code without a human reviewing the cause first.
+The **daily enhancement workflow** (`daily-improve.yml`) adds one more guard: it replays the battery, and **if a threshold regresses it automatically opens a GitHub Issue** titled with the failing metric — the team gets told the same day without watching CI. Improvement **proposals** are attached to that same issue; but no automated edit ever lands on the robot code without a human reviewing the cause first.
 
-Quality thresholds enforced (`ci/bateria.sh`) — the run turns **red** if ANY falls:
+Quality thresholds enforced (`ci/battery.sh`) — the run turns **red** if ANY falls:
 
 | Battery | Metric | Threshold |
 |---|---|---|
 | `verifica` | math tests | 12/12 |
-| `estres` (30 matches) | matches approved | 30/30 |
+| `stress` (30 matches) | matches approved | 30/30 |
 | Iron Acres KID (n300) | Park in zone | ≥ 90% |
 | Iron Acres KID (n300) | STRICT matches (zero faults) | ≥ 60% |
 | Iron Acres KID (n300) | P1 spins post-collision | = 0 |
 | Iron Acres KID (n300) | Points avg | ≥ 50 |
-| Iron Acres ADULTO (n100) | Points avg | ≥ 35 |
+| Iron Acres ADULT (n100) | Points avg | ≥ 35 |
 | Weapons vs NO-ASSIST | Contribution | ≥ 2 pts |
 | Games KID (n100 × 5) | Modes with F1–F4 clean | 5/5 |
 | SUMO KID (n100) | Losses | 0% |
-| FUTBOL 1v1 (n100) | Goals/match | ≥ 0.2 |
-| FUTBOL2 2v2 (n100) | Goals/match | ≥ 3.0 |
-| FUTBOL2 ADULTO (n40) | Win % | ≥ 50% |
+| SOCCER 1v1 (n100) | Goals/match | ≥ 0.2 |
+| SOCCER2 2v2 (n100) | Goals/match | ≥ 3.0 |
+| SOCCER2 ADULT (n40) | Win % | ≥ 50% |
 
-> 🛡️ **When a metric regresses, we edit `piloto_gamepad.py` / `arma*.py` — NEVER the test harnesses or their fidelity metrics (F-metrics).** CI is an alarm, not an auto-editor.
+> 🛡️ **When a metric regresses, we edit `pilot_gamepad.py` / `arma*.py` — NEVER the test harnesses or their fidelity metrics (F-metrics).** CI is an alarm, not an auto-editor.
 
 ---
 
@@ -312,10 +324,10 @@ Quality thresholds enforced (`ci/bateria.sh`) — the run turns **red** if ANY f
 | DRIVE (100) | 2.84 doors, max 3 | 0 | 0 | 0 | 0 | 144 ms |
 | SUMO 1v1 (100) | **73% won / 0% lost / 27% draw** | 0 | 0 | 0 | 0 | 31 ms |
 | SUMO 2v2 (100) | **63% won / 0% lost / 37%** | 0 | 0 | 0 | 0 | 32 ms |
-| FUTBOL 1v1 (100) | **0.55 goals/match** (55% of matches with a goal) | 0 | 0 | 0 | 0 | 123 ms |
-| FUTBOL2 2v2 (100) | 4.79 goals, **51% won / 35% lost** | 0 | 0 | 0 | 0 | 38 ms |
+| SOCCER 1v1 (100) | **0.55 goals/match** (55% of matches with a goal) | 0 | 0 | 0 | 0 | 123 ms |
+| SOCCER2 2v2 (100) | 4.79 goals, **51% won / 35% lost** | 0 | 0 | 0 | 0 | 38 ms |
 
-**ADULTO reference (40/mode, stress):** 0 in F1–F2, F3 2/40, F4 4/40 only in soccer (limit effect of the adult profile's own push, self-recovers). ADULTO FUTBOL2: **77.5% won / 15% lost**.
+**ADULT reference (40/mode, stress):** 0 in F1–F2, F3 2/40, F4 4/40 only in soccer (limit effect of the adult profile's own push, self-recovers). ADULT SOCCER2: **77.5% won / 15% lost**.
 
 Fidelity metrics (proving the kid cannot trigger involuntary robot moves): **F1** robot goes backward when commanded forward (never happens), **F2** slides >8 cm after releasing sticks at speed, **F3** >3 cm drift while the kid is still >1 s, **F4** >3° heading change without X1 >1 s, **F5** stick→wheels latency. All clean in all modes with the KID profile.
 
@@ -327,12 +339,12 @@ All constants live at the top of each module, tuned by battery (never by eye):
 
 | Module | Constant(s) | What to tune on the real track |
 |---|---|---|
-| `piloto_gamepad.py` | `TRIM_UMBRAL=0.12`, `TRIM_SAT=0.25`, `TRIM_GRADOS_S=60`, `TRIM_TAU=0.25`, `GIRO_MIN=0.08`, `ASENTAR_MAX_MS=600`, `ASENTAR_TASA=45` | Kid tremor filter / post-turn settle window |
-| `arma1_gyro_lock.py` | `KP=0.064`, **`KI=0.06`, `MAX_I=0.3`**, `KD=0.0055`, `DEADBAND=1.5`, `OUT_LIMIT=0.5` | Start from factory KP → add KD → finally KI. Lower `KI` if the oscillation after crashes won't die; keep `MAX_I` small (the integral is the #1 source of oscillatory spins) |
-| `arma2_torque_boost.py` | `RATIO_ATASCO`, `BOOST_MAX` | On a free robot the boost must **never** trigger |
-| `arma3_curvas.py` | `MIX=0.35` (0.12 precision), `SLEW_DEF=3.0`, `SLEW_SUELTA=12.0` | Higher `MIX` = rawer stick; lower `SLEW` = softer starts |
-| `arma4_traccion.py` | `RAMPA_MAX=3.0`, `PULSO_K=0.012` | Increase `PULSO_K` if the robot still slides after braking |
-| `arma5_endgame.py` | `V_RETORNO=0.85`, `TOLERANCIA_CM=10`, `PUNTO_CLAVAR_CM=8`, `SEGURO_FINAL_MS=2000`, `PIVOTE_GRADOS=45` | `TOLERANCIA_CM` per the official "Read the Manual"; `V_RETORNO` = how early the assist must fire |
+| `pilot_gamepad.py` | `TRIM_THRESHOLD=0.12`, `TRIM_SAT=0.25`, `TRIM_DEG_S=60`, `TRIM_TAU=0.25`, `TURN_MIN=0.08`, `SETTLE_MAX_MS=600`, `SETTLE_RATE=45` | Kid tremor filter / post-turn settle window |
+| `weapon1_gyro_lock.py` | `KP=0.064`, **`KI=0.06`, `MAX_I=0.3`**, `KD=0.0055`, `DEADBAND=1.5`, `OUT_LIMIT=0.5` | Start from factory KP → add KD → finally KI. Lower `KI` if the oscillation after crashes won't die; keep `MAX_I` small (the integral is the #1 source of oscillatory spins) |
+| `weapon2_torque_boost.py` | `STALL_RATIO`, `BOOST_MAX` | On a free robot the boost must **never** trigger |
+| `weapon3_curves.py` | `MIX=0.35` (0.12 precision), `SLEW_DEFAULT=3.0`, `SLEW_RELEASE=12.0` | Higher `MIX` = rawer stick; lower `SLEW` = softer starts |
+| `weapon4_traction.py` | `RAMP_MAX=3.0`, `PULSE_K=0.012` | Increase `PULSE_K` if the robot still slides after braking |
+| `weapon5_endgame.py` | `V_RETORNO=0.85`, `TOLERANCIA_CM=10`, `PARK_LOCK_CM=8`, `FINAL_SAFE_MS=2000`, `PIVOT_DEG=45` | `TOLERANCIA_CM` per the official "Read the Manual"; `V_RETORNO` = how early the assist must fire |
 
 📱 **Calibration order on the real robot:** Weapon 1 first (park the robot, push it with a hand, it must not spin) → Weapon 4 (release sticks at speed → no slide) → Weapon 3 (curves by feel) → Weapon 2 (push the robot into a wall → boost) → Weapon 5 (full mock match).
 
@@ -358,7 +370,7 @@ Because the match can't block: we read encoders and IMU continuously every 20–
 Because in the real match the robot must react instantly to a human operator — the gamepad simulates that operator (50 Hz streaming via the official XPP protocol). No operator code runs during the match; only the board.
 
 **Q: Do the weapons fight each other?**
-No. There's a strict single-writer rule: only `arma4_traccion.py` ever calls `DRIVETRAIN.set_effort()`. Everything else feeds it.
+No. There's a strict single-writer rule: only `weapon4_traction.py` ever calls `DRIVETRAIN.set_effort()`. Everything else feeds it.
 
 **Q: Can I use this with Blockly only (no Python)?**
 You can import the modules from Python blocks, but the weapons themselves are Python files — they must be uploaded to the robot's filesystem either way.
@@ -368,6 +380,24 @@ Any official firmware ≥ 1.0.2 with XRPLib. Bluetooth gamepad support needs `XR
 
 **Q: Is the simulator identical to the real robot?**
 No — it's a fidelity plant (encoder inertia, IMU drift, programmed stalls, crash jolts) used to hunt bugs before they reach the metal. Real-track calibration is still mandatory, in the 🛠️ order above.
+
+---
+
+## 📖 Wiki
+
+The [GitHub Wiki](https://github.com/MeowDev1011/XRP-V1-robot-upgrades/wiki) is the living handbook of the team (in English, with emojis and lots of markdown):
+
+| Page | What you will find |
+|---|---|
+| 🏠 [Home](https://github.com/MeowDev1011/XRP-V1-robot-upgrades/wiki) | Overview + all page links |
+| 🤖 [What is this robot?](https://github.com/MeowDev1011/XRP-V1-robot-upgrades/wiki/What-Is-This-Robot) | XRP hardware, sensors, who is Team Robots Legends |
+| 📥 [Upload files](https://github.com/MeowDev1011/XRP-V1-robot-upgrades/wiki/Uploading-Files) | XRPCode / mpremote / Thonny / Copa Robótica, step by step |
+| 🎮 [Controls](https://github.com/MeowDev1011/XRP-V1-robot-upgrades/wiki/Controls) | Gamepad map and pilot modes |
+| ⚔️ [The 5 weapons](https://github.com/MeowDev1011/XRP-V1-robot-upgrades/wiki/The-5-Weapons) | Each system, constants and how to tune it |
+| 🧪 [Testing & simulation](https://github.com/MeowDev1011/XRP-V1-robot-upgrades/wiki/Testing-and-Simulation) | verify / stress / mass_campaign / games explained |
+| 🚑 [Troubleshooting](https://github.com/MeowDev1011/XRP-V1-robot-upgrades/wiki/Troubleshooting) | Common failures and fixes |
+| 🤝 [Collaborating](https://github.com/MeowDev1011/XRP-V1-robot-upgrades/wiki/Collaborating) | Branches, PRs, the 24/7 workflows, how to contribute |
+| 🎛️ [Calibration](https://github.com/MeowDev1011/XRP-V1-robot-upgrades/wiki/Calibration) | On-track calibration drills for every weapon |
 
 ---
 

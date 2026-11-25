@@ -4,7 +4,7 @@
 # Pure-Python simulator. Runs on PC (python3) or on a PHONE
 # with the free Pydroid 3 app (Android).
 # It loads the team's REAL files UNMODIFIED:
-#   piloto_gamepad.py + arma1..arma5
+#   pilot_gamepad.py + arma1..endgame
 # It replaces XRPLib with a simulated physical plant (inertia,
 # static friction, IMU drift, stalls, crashes) and a VIRTUAL
 # GAMEPAD "pressed" by a simulated human pilot.
@@ -12,7 +12,7 @@
 # match: stick axes -> curves -> weapons -> motors.
 #
 # USAGE: python3 simulador_xrp.py
-# (the arma*.py, piloto_gamepad.py and this file in the same
+# (the weapon*.py, pilot_gamepad.py and this file in the same
 #  folder)
 # =========================================================
 import sys
@@ -23,17 +23,17 @@ import math
 # 1) Inject virtual uasyncio, time, micropython and
 #    XRPLib.gamepad BEFORE importing the pilot and weapons
 # ---------------------------------------------------------
-class RelojVirtual:
+class VirtualClock:
     def __init__(self):
         self.t = 0
 
     def ticks_ms(self):
         return self.t
 
-    def avanzar(self, ms):
+    def advance(self, ms):
         self.t += ms
 
-RELOJ = RelojVirtual()
+CLOCK = VirtualClock()
 
 uasyncio_stub = types.ModuleType("uasyncio")
 
@@ -48,7 +48,7 @@ import time as _time_real
 
 time_stub = types.ModuleType("time")
 time_stub.__dict__.update(vars(_time_real))
-time_stub.ticks_ms = RELOJ.ticks_ms
+time_stub.ticks_ms = CLOCK.ticks_ms
 time_stub.ticks_add = lambda a, b: a + b
 time_stub.ticks_diff = lambda a, b: a - b
 sys.modules["time"] = time_stub
@@ -68,46 +68,46 @@ TAU = 0.14           # motor inertia (s)
 KS = 0.12            # static: minimum effort to move
 BIAS_IMU_CS = 0.05   # IMU drift (deg/s)
 
-class RuedaSim:
+class WheelSim:
     def __init__(self):
         self.rpm = 0.0
         self.effort = 0.0
         self.pos_cm = 0.0
-        self.atascada = False
+        self.stalled = False
 
-    def paso(self, dt_s):
-        if self.atascada:
+    def step(self, dt_s):
+        if self.stalled:
             self.rpm *= max(0.0, 1.0 - dt_s * 15.0)
             return
         if abs(self.effort) < KS and abs(self.rpm) < 1.0:
             self.rpm = 0.0
             return
-        objetivo = self.effort * KW
-        self.rpm += (objetivo - self.rpm) * (dt_s / TAU)
+        target = self.effort * KW
+        self.rpm += (target - self.rpm) * (dt_s / TAU)
         self.pos_cm += self.rpm * RPM_A_CM_S * dt_s
 
 class DRIVETRAIN:
-    LEFT = RuedaSim()
-    RIGHT = RuedaSim()
+    LEFT = WheelSim()
+    RIGHT = WheelSim()
     yaw = 0.0
-    fuente = "inactiva"
+    source = "idle"
 
     @classmethod
     def set_effort(cls, l, r):
         if abs(l) > 1e-9 or abs(r) > 1e-9:
-            cls.fuente = "activa"
+            cls.source = "active"
         cls.LEFT.effort = l
         cls.RIGHT.effort = r
 
     @classmethod
     def stop(cls):
         cls.set_effort(0.0, 0.0)
-        cls.fuente = "parado"
+        cls.source = "stopped"
 
     @classmethod
-    def paso(cls, dt_s):
-        cls.LEFT.paso(dt_s)
-        cls.RIGHT.paso(dt_s)
+    def step(cls, dt_s):
+        cls.LEFT.step(dt_s)
+        cls.RIGHT.step(dt_s)
         v_r = cls.RIGHT.rpm * RPM_A_CM_S
         v_l = cls.LEFT.rpm * RPM_A_CM_S
         cls.yaw += math.degrees((v_r - v_l) / TRACK_CM * dt_s)
@@ -202,12 +202,12 @@ class GamepadSim:
             cls._SINGLETON = cls()
         g = cls._SINGLETON
         g.axes = [0.0, 0.0, 0.0, 0.0]
-        g.botones = [0] * len(_BOTONES)
+        g.buttons = [0] * len(_BOTONES)
         return g
 
     def __init__(self):
         self.axes = [0.0] * 4
-        self.botones = [0] * len(_BOTONES)
+        self.buttons = [0] * len(_BOTONES)
 
     def start(self):
         pass
@@ -222,7 +222,7 @@ class GamepadSim:
 
     def is_button_pressed(self, index):
         if 4 <= index < 4 + len(_BOTONES):
-            return self.botones[index - 4] > 0
+            return self.buttons[index - 4] > 0
         return False
 
 gp_module = types.ModuleType("XRPLib.gamepad")
@@ -234,50 +234,50 @@ sys.modules["XRPLib.gamepad"] = gp_module
 # 3) Import the REAL stick console and the 5 weapons
 #    (without touching them)
 # ---------------------------------------------------------
-import arma1_gyro_lock as A1
-import arma2_torque_boost as A2
-import arma3_curvas as A3
-import arma4_traccion as A4
-import arma5_endgame as A5
-import piloto_gamepad as MAIN
+import weapon1_gyro_lock as A1
+import weapon2_torque_boost as A2
+import weapon3_curves as A3
+import weapon4_traction as A4
+import weapon5_endgame as A5
+import pilot_gamepad as MAIN
 
 # ---------- TEAM PARAMETERS (overridable, as on the track) ----------
 A5.V_RETORNO = 0.85     # the return is only viable if home is <= ~150 cm away
 DT_S = 0.02
 EVENTOS = []
 
-def _log(linea):
-    EVENTOS.append(linea)
-    print("   >> " + linea)
+def _log(line):
+    EVENTOS.append(line)
+    print("   >> " + line)
 
-def cablear():
+def wire():
     tb = A4.traction_brake
 
-    def gancho(l, r):
+    def hook(l, r):
         l, r = A2.torque_boost.feed(l, r)
         tb.set_command(l, r)
 
-    A1.gyro_lock.attach(gancho)
+    A1.gyro_lock.attach(hook)
     return tb
 
-class ManosVirtuales:
+class VirtualHands:
     """The human pilot 'presses' the physical gamepad at moments
     of the match. Everything else is done by the weapons alone."""
 
     def __init__(self):
         self.pad = GamepadSim.get_default_gamepad()
-        self.prev_modo = "STARTUP"
-        self._rumbo_deseado = 0.0
-        self._girando = False
+        self.prev_mode = "STARTUP"
+        self._desired_heading = 0.0
+        self._turning = False
         self._max_dist = 0.0
 
-    def presentar(self):
-        self.pad.botones[GamepadSim.START - 4] = 1
+    def press_start(self):
+        self.pad.buttons[GamepadSim.START - 4] = 1
 
-    def soltar_start(self):
-        self.pad.botones[GamepadSim.START - 4] = 0
+    def release_start(self):
+        self.pad.buttons[GamepadSim.START - 4] = 0
 
-    def ordena(self, t_ms):
+    def drive(self, t_ms):
         pad = self.pad
 
         if 2000 <= t_ms < 2050:
@@ -296,72 +296,72 @@ class ManosVirtuales:
             _log("t=%5.1f s PILOT: full stop " % (t_ms / 1000.0))
         if 62000 <= t_ms < 62020:
             pad.axes[GamepadSim.X1] = 1.0
-            self._rumbo_deseado = IMU.get_yaw() + 180.0
-            self._girando = True
+            self._desired_heading = IMU.get_yaw() + 180.0
+            self._turning = True
             _log("t=%5.1f s PILOT: half turn with stick X1" % (t_ms / 1000.0))
-        if self._girando:
-            if abs(((self._rumbo_deseado - IMU.get_yaw()) + 180.0) % 360.0 - 180.0) > 4.0:
+        if self._turning:
+            if abs(((self._desired_heading - IMU.get_yaw()) + 180.0) % 360.0 - 180.0) > 4.0:
                 pad.axes[GamepadSim.X1] = 1.0     # keeps turning (manual pilot)
             else:
                 pad.axes[GamepadSim.X1] = 0.0     # releases the stick: gyro recaptures
-                self._girando = False
+                self._turning = False
                 _log("t=%5.1f s PILOT: completes the turn, releases stick" % (t_ms / 1000.0))
-        if (not self._girando) and 64000 <= t_ms < 64500:
+        if (not self._turning) and 64000 <= t_ms < 64500:
             pad.axes[GamepadSim.Y1] = 0.4         # drives toward home (already facing home)
-            _log("t=%5.1f s PILOT: drives toward home at %.0f cm" % (t_ms / 1000.0, A5.arma5.distancia_al_hogar()))
-        self._max_dist = max(self._max_dist, A5.arma5.distancia_al_hogar())
-        if (not self._girando) and pad.axes[GamepadSim.Y1] > 0.0:
-            if self._max_dist >= 90.0 and A5.arma5.distancia_al_hogar() <= 80.0:
+            _log("t=%5.1f s PILOT: drives toward home at %.0f cm" % (t_ms / 1000.0, A5.endgame.home_distance()))
+        self._max_dist = max(self._max_dist, A5.endgame.home_distance())
+        if (not self._turning) and pad.axes[GamepadSim.Y1] > 0.0:
+            if self._max_dist >= 90.0 and A5.endgame.home_distance() <= 80.0:
                 pad.axes[GamepadSim.Y1] = 0.0
                 _log("t=%5.1f s PILOT: stops at %.0f cm from home (waits for ENDGAME)"
-                     % (t_ms / 1000.0, A5.arma5.distancia_al_hogar()))
+                     % (t_ms / 1000.0, A5.endgame.home_distance()))
 
-        if MAIN.piloto_mando.nombre_modo() != self.prev_modo:
-            self.prev_modo = MAIN.piloto_mando.nombre_modo()
-            _log("t=%5.1f s MODE -> %s" % (t_ms / 1000.0, self.prev_modo))
+        if MAIN.pilot_console.mode_name() != self.prev_mode:
+            self.prev_mode = MAIN.pilot_console.mode_name()
+            _log("t=%5.1f s MODE -> %s" % (t_ms / 1000.0, self.prev_mode))
 
 # ---------------------------------------------------------
 # 4) Match run: 150 s in 20 ms steps (instantaneous)
 # ---------------------------------------------------------
-def partida():
+def match():
     print("== VIRTUAL IRON ACRES MATCH (150 s, virtual physical sticks) ==")
     A5.imu.calibrate(1.0)
     A5.imu.reset_yaw()
-    tb = cablear()
+    tb = wire()
     tb.enable()
     A2.torque_boost.enable()
-    arma5 = A5.arma5
-    arma5.conectar(A1.gyro_lock)
-    arma5.modo_retorno(True)          # closing assist (BACK toggles it)
-    armas_listas = False
-    pad = GamepadSim.nueva()
-    MAIN.piloto_mando.conectar(pad)
+    endgame = A5.endgame
+    endgame.connect(A1.gyro_lock)
+    endgame.set_return(True)          # closing assist (BACK toggles it)
+    weapons_ready = False
+    pad = GamepadSim.fresh()
+    MAIN.pilot_console.connect(pad)
     manos = ManosVirtuales()
 
     tray = []
     prev_boost = 0.0
-    prev_casa = False
-    pasos = int(150000 / 20)
-    for k in range(pasos):
-        RELOJ.avanzar(20)
-        t_ms = RELOJ.ticks_ms()
+    prev_home = False
+    steps = int(150000 / 20)
+    for k in range(steps):
+        CLOCK.advance(20)
+        t_ms = CLOCK.ticks_ms()
 
-        if not armas_listas and t_ms >= 400:
-            manos.presentar()
-            MAIN.piloto_mando._paso()   # START: arms clock + home + heading
-            manos.soltar_start()
-            armas_listas = True
+        if not weapons_ready and t_ms >= 400:
+            manos.press_start()
+            MAIN.pilot_console._cycle()   # START: arms clock + home + heading
+            manos.release_start()
+            weapons_ready = True
             _log("t=%5.1f s PILOT: START pressed (A5 clock armed)"
                  % (t_ms / 1000.0,))
             continue
 
-        manos.ordena(t_ms)
-        MAIN.piloto_mando._paso()    # stick loop, same as on the board
+        manos.drive(t_ms)
+        MAIN.pilot_console._cycle()    # stick loop, same as on the board
         A1.gyro_lock._tick()
-        tb.paso()
-        arma5._odometria()
-        arma5._logica_endgame()
-        DRIVETRAIN.paso(DT_S)
+        tb.step()
+        endgame._odometry()
+        endgame._endgame_logic()
+        DRIVETRAIN.step(DT_S)
 
         b = A2.torque_boost.boost_l + A2.torque_boost.boost_r
         if prev_boost == 0.0 and b > 0.02:
@@ -369,42 +369,42 @@ def partida():
                  % (t_ms / 1000.0, A2.torque_boost.boost_l, A2.torque_boost.boost_r))
         prev_boost = b
 
-        en_casa = arma5.distancia_al_hogar() <= A5.TOLERANCIA_CM and tb.clavado
-        if not prev_casa and en_casa and t_ms > 5000:
+        at_home = endgame.home_distance() <= A5.HOME_TOL_CM and tb.nailed
+        if not prev_home and at_home and t_ms > 5000:
             _log("t=%5.1f s WEAPON 5: AUTOMATIC HOME ARRIVAL, nailed until the buzzer"
                  % (t_ms / 1000.0))
-        prev_casa = en_casa
+        prev_home = at_home
 
         if k % 250 == 0:
-            x, y, th = arma5.pose()
-            mando = MAIN.piloto_mando
+            x, y, th = endgame.pose()
+            console = MAIN.pilot_console
             print("t=%6.1f s | yaw=%7.2f | pos=(%6.1f, %6.1f) | err=%6.2f | "
                   "boost=[%.2f %.2f] | axis=%s/%s | mode=%s | home=%5.1f cm" % (
                       t_ms / 1000.0, IMU.get_yaw(), x, y,
                       A1.gyro_lock.get_error(),
                       A2.torque_boost.boost_l, A2.torque_boost.boost_r,
-                      tb.estado_izq, tb.estado_der,
-                      mando.nombre_modo(),
-                      arma5.distancia_al_hogar()))
+                      tb.state_left, tb.state_right,
+                      console.mode_name(),
+                      endgame.home_distance()))
         if k % 50 == 0:
-            x, y, th = arma5.pose()
+            x, y, th = endgame.pose()
             tray.append((t_ms / 1000.0, x, y))
-        if arma5.ms_restantes() <= 0:
+        if endgame.ms_left() <= 0:
             break
 
     DRIVETRAIN.stop()
     print()
     print("== MATCH SUMMARY ==")
-    for linea in EVENTOS:
-        print(" ", linea)
-    dist = arma5.distancia_al_hogar()
+    for line in EVENTOS:
+        print(" ", line)
+    dist = endgame.home_distance()
     print("  Final distance to home: %.1f cm -> %s"
           % (dist,
-             "IN ZONE (closing score)" if dist <= A5.TOLERANCIA_CM else "OUT OF ZONE"))
+             "IN ZONE (closing score)" if dist <= A5.HOME_TOL_CM else "OUT OF ZONE"))
     print()
-    plot(tray, arma5)
+    plot(tray, endgame)
 
-def plot(tray, arma5):
+def plot(tray, endgame):
     xs = [t[1] for t in tray]
     ys = [t[2] for t in tray]
     min_x, max_x = min(xs + [0.0]) - 20.0, max(xs + [0.0]) + 20.0
@@ -417,15 +417,15 @@ def plot(tray, arma5):
     def py(y):
         return min(H - 1, max(0, int((y - min_y) / (max_y - min_y) * (H - 1))))
 
-    lienzo = [[" "] * W for _ in range(H)]
-    lienzo[H - 1 - py(arma5._home_y)][px(arma5._home_x)] = "H"
+    canvas = [[" "] * W for _ in range(H)]
+    canvas[H - 1 - py(endgame._home_y)][px(endgame._home_x)] = "H"
     for t, x, y in tray:
         cx, cy = px(x), py(y)
-        lienzo[H - 1 - cy][cx] = "."
+        canvas[H - 1 - cy][cx] = "."
     print("TRAJECTORY (H = home/start zone; X %d..%d cm, Y %d..%d cm)"
           % (min_x, max_x, min_y, max_y))
-    for fila in lienzo:
-        print("".join(fila))
+    for row in canvas:
+        print("".join(row))
 
 if __name__ == "__main__":
-    partida()
+    match()

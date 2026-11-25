@@ -16,12 +16,12 @@
 import asyncio
 from XRPLib.defaults import imu
 from XRPLib.gamepad import Gamepad
-from arma1_gyro_lock import gyro_lock
-from arma2_torque_boost import torque_boost
-from arma3_curvas import suav_avance, suav_giro
-from arma4_traccion import traction_brake
-from arma5_endgame import arma5
-from piloto_gamepad import piloto_mando
+from weapon1_gyro_lock import gyro_lock
+from weapon2_torque_boost import torque_boost
+from weapon3_curves import slew_fwd, slew_turn
+from weapon4_traction import traction_brake
+from weapon5_endgame import endgame
+from pilot_gamepad import pilot_console
 
 
 def _gancho(l, r):
@@ -33,13 +33,13 @@ def iniciar_sistema():
     gyro_lock.attach(_gancho)          # W1 -> W2 -> W4 (owner of the motors)
     torque_boost.enable()
     traction_brake.enable()
-    arma5.conectar(gyro_lock)
-    arma5.modo_retorno(True)
-    piloto_mando.conectar(Gamepad.get_default_gamepad())
+    endgame.connect(gyro_lock)
+    endgame.set_return(True)
+    pilot_console.connect(Gamepad.get_default_gamepad())
     traction_brake.start()             # 50 Hz, uasyncio
     gyro_lock.start()                  # 50 Hz, uasyncio
-    arma5.start()                      # 50 Hz, uasyncio
-    piloto_mando.start()               # 50 Hz, uasyncio
+    endgame.start()                      # 50 Hz, uasyncio
+    pilot_console.start()               # 50 Hz, uasyncio
 
 
 async def _vivir():

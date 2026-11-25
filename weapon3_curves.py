@@ -14,9 +14,9 @@
 #     physical ramp of Weapon 4.
 # ---------------------------------------------------------
 # Usage from XRPCode blocks:
-#   from arma3_curvas import forma, Suavizador, suav_avance, suav_giro
-#   v = forma(stick_order)                     # curve alone
-#   v = suav_avance.update(forma(order), dt)   # curve + ramp
+#   from weapon3_curves import curve, SlewRamp, slew_fwd, slew_turn
+#   v = curve(stick_order)                     # curve alone
+#   v = slew_fwd.update(curve(order), dt)   # curve + ramp
 # Pure math: consumes no tasks nor sensors.
 # =========================================================
 
@@ -24,13 +24,13 @@
 # ON-TRACK CALIBRATION
 # ------------------------------------------------------------
 MIX        = 0.35   # 0 = pure cubic (surgical), 1 = linear (aggressive)
-MIX_PRECIS = 0.12   # precision mode (BUMPER_L held)
+MIX_PRECISION = 0.12   # precision mode (BUMPER_L held)
 DEADBAND   = 0.04   # smaller orders move nothing (filters stick noise)
-SLEW_DEF   = 3.0    # effort per second: input ramp
-SLEW_SUELTA = 12.0  # on release: fast drop (anti-pan with stick at zero)
+SLEW_DEFAULT   = 3.0    # effort per second: input ramp
+SLEW_RELEASE = 12.0  # on release: fast drop (anti-pan with stick at zero)
 
 
-def forma(v, mix=MIX, deadband=DEADBAND):
+def curve(v, mix=MIX, deadband=DEADBAND):
     """Cubic response curve with a re-scaled deadband.
     Input and output in [-1, 1]. Continuous and jump-free."""
     if v > 1.0:
@@ -45,8 +45,8 @@ def forma(v, mix=MIX, deadband=DEADBAND):
     return mix * v + (1.0 - mix) * cubo
 
 
-def invertida(y, mix=MIX, deadband=DEADBAND):
-    """Approximation to the inverse of forma(): useful for calibration
+def invert(y, mix=MIX, deadband=DEADBAND):
+    """Approximation to the inverse of curve(): useful for calibration
     (tells which order is needed for a desired output)."""
     if abs(y) < 1e-6:
         return 0.0
@@ -67,33 +67,33 @@ def invertida(y, mix=MIX, deadband=DEADBAND):
     return v
 
 
-class Suavizador:
+class SlewRamp:
     """Input slew limiter: prevents abrupt changes of order.
     One instance per axis (forward and turn)."""
 
-    def __init__(self, slew=SLEW_DEF):
+    def __init__(self, slew=SLEW_DEFAULT):
         self.slew = slew
         self.v = 0.0
 
     def reset(self):
         self.v = 0.0
 
-    def update(self, objetivo, dt):
+    def update(self, target, dt):
         # the ramp protects ONLY the rise: on stick release the order
         # falls fast (wheel inertia is already a physical filter);
         # limiting the descent too left the robot turning "ghost-style"
         # for ~1 s with the stick at zero (F4 pans)
-        if objetivo > self.v:
-            paso = max(self.slew, SLEW_SUELTA) * dt
-            if objetivo - self.v <= paso:
-                self.v = objetivo
+        if target > self.v:
+            step = max(self.slew, SLEW_RELEASE) * dt
+            if target - self.v <= step:
+                self.v = target
             else:
-                self.v += paso
+                self.v += step
         else:
-            self.v = objetivo
+            self.v = target
         return self.v
 
 
 # instances ready for the sticks (forward and turn)
-suav_avance = Suavizador()
-suav_giro = Suavizador()
+slew_fwd = SlewRamp()
+slew_turn = SlewRamp()

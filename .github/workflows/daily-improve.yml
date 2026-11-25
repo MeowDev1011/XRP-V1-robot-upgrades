@@ -7,7 +7,7 @@
 #
 # NOTE: this workflow NEVER edits robot code on its own. It
 # only raises the alarm; humans review and then edit
-# piloto_gamepad.py / arma*.py (never the test harnesses).
+# pilot_gamepad.py / weapon*.py (never the test harnesses).
 # =========================================================
 name: daily-improvement
 
@@ -33,7 +33,7 @@ jobs:
         run: |
           export BATERIA_LOGS="$RUNNER_TEMP/logs"
           mkdir -p "$BATERIA_LOGS"
-          bash ci/bateria.sh | tee "$BATERIA_LOGS/output.txt"
+          bash ci/battery.sh | tee "$BATERIA_LOGS/output.txt"
           cat /tmp/summary.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Open an issue when a threshold regresses
@@ -49,7 +49,7 @@ jobs:
             cat /tmp/summary.md 2>/dev/null || echo "(summary not available)"
             echo ""
             echo "Review the artifacts, find the root cause, and edit"
-            echo "piloto_gamepad.py / arma*.py (NEVER the tests or F-metrics)."
+            echo "pilot_gamepad.py / weapon*.py (NEVER the tests or F-metrics)."
           } > /tmp/issue.md
           gh issue create \
             --repo "${{ github.repository }}" \

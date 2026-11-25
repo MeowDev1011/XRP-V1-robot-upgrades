@@ -9,12 +9,12 @@
 # Friction model of the official source: kS=0.12, kV=0.02.
 #   expected rpm = (effort - kS) / kV
 # If the wheel turns much less than expected during
-# TICKS_CONFIRMAR, it is a real stall: the boost climbs
+# STALL_TICKS, it is a real stall: the boost climbs
 # in THAT wheel only and releases as soon as it flows again.
 # ---------------------------------------------------------
 # Two modes:
 #   1) Composite (recommended): gyro_lock.attach(arma2.feed)
-#      and the last chain link calls torque_boost.aplicar().
+#      and the last chain link calls torque_boost.apply().
 #   2) Standalone: set_command(l, r) + enable() + start().
 # =========================================================
 import uasyncio as asyncio
@@ -26,18 +26,18 @@ from XRPLib.defaults import drivetrain, board, left_motor, right_motor
 # ------------------------------------------------------------
 KS             = 0.12   # factory: effort to "break the static"
 KV             = 0.02   # factory: effort per rpm
-COMP_BATERIA   = True   # multiply by board.voltage_scale (stable torque)
+BATTERY_COMP   = True   # multiply by board.voltage_scale (stable torque)
 STALL_CMD_MIN  = 0.25   # do not watch for stalls below this effort
-RPM_MIN_FALLO  = 8.0    # minimum expected speed to speak of a stall
-RATIO_ATASCO   = 0.4    # stall if turning < 40% of expected
-TICKS_CONFIRMAR = 8     # 8 x 20 ms = 160 ms confirming stall (anti-noise)
+RPM_MIN_STALL  = 8.0    # minimum expected speed to speak of a stall
+STALL_RATIO   = 0.4    # stall if turning < 40% of expected
+STALL_TICKS = 8     # 8 x 20 ms = 160 ms confirming stall (anti-noise)
 BOOST_MAX      = 0.35   # maximum extra effort per wheel
-BOOST_PASO     = 0.012  # ~0.6 effort/second climb: strong but sensitive
-BOOST_FUGA     = 0.05   # release per cycle once fluid again
+BOOST_STEP     = 0.012  # ~0.6 effort/second climb: strong but sensitive
+BOOST_LEAK     = 0.05   # release per cycle once fluid again
 DT_MS          = 20
 
 
-class _Rueda:
+class _Wheel:
     """State of one wheel: current boost + stall cycle counter."""
 
     def __init__(self, motor):
@@ -52,16 +52,16 @@ class _Rueda:
             self.ticks = 0
             return cmd
         expected = (e - KS) / KV
-        if expected < RPM_MIN_FALLO:
+        if expected < RPM_MIN_STALL:
             return cmd
         real = self.motor.get_speed()
-        if abs(real) < RATIO_ATASCO * expected:
+        if abs(real) < STALL_RATIO * expected:
             self.ticks += 1
-            if self.ticks >= TICKS_CONFIRMAR:
-                self.boost = min(BOOST_MAX, self.boost + BOOST_PASO)
+            if self.ticks >= STALL_TICKS:
+                self.boost = min(BOOST_MAX, self.boost + BOOST_STEP)
         else:
             self.ticks = 0
-            self.boost = max(0.0, self.boost - BOOST_FUGA)
+            self.boost = max(0.0, self.boost - BOOST_LEAK)
         sgn = 1.0 if cmd >= 0 else -1.0
         return cmd + sgn * self.boost
 
@@ -69,8 +69,8 @@ class _Rueda:
 class TorqueBoost:
     def __init__(self):
         self.enabled = False
-        self._izq = _Rueda(left_motor)
-        self._der = _Rueda(right_motor)
+        self._left = _Wheel(left_motor)
+        self._right = _Wheel(right_motor)
         self._cmd_l = 0.0
         self._cmd_r = 0.0
         self._task = None
@@ -78,34 +78,34 @@ class TorqueBoost:
     # ---------------- observable state for telemetry ----------------
     @property
     def boost_l(self):
-        return self._izq.boost
+        return self._left.boost
 
     @property
     def boost_r(self):
-        return self._der.boost
+        return self._right.boost
 
     @property
-    def atasco_l(self):
-        return self._izq.ticks >= TICKS_CONFIRMAR
+    def stall_l(self):
+        return self._left.ticks >= STALL_TICKS
 
     @property
-    def atasco_r(self):
-        return self._der.ticks >= TICKS_CONFIRMAR
+    def stall_r(self):
+        return self._right.ticks >= STALL_TICKS
 
     # ---------------- composite mode ----------------
     def feed(self, left, right):
         """Returns the efforts with boost applied. Does NOT write motors;
-        the last chain link calls aplicar(). In standalone mode,
+        the last chain link calls apply(). In standalone mode,
         _run() acts as the last link."""
-        return self._izq.step(left), self._der.step(right)
+        return self._left.step(left), self._right.step(right)
 
-    def aplicar(self, left, right):
+    def apply(self, left, right):
         """Final link of any chain: writes the motors, with battery
         compensation when applicable."""
         if not self.enabled:
-            self._izq.boost = 0.0
-            self._der.boost = 0.0
-        vs = board.voltage_scale if COMP_BATERIA else 1.0
+            self._left.boost = 0.0
+            self._right.boost = 0.0
+        vs = board.voltage_scale if BATTERY_COMP else 1.0
         drivetrain.set_effort(max(-1.0, min(1.0, left * vs)),
                               max(-1.0, min(1.0, right * vs)))
 
@@ -121,10 +121,10 @@ class TorqueBoost:
         self.enabled = False
         self._cmd_l = 0.0
         self._cmd_r = 0.0
-        self._izq.boost = 0.0
-        self._der.boost = 0.0
-        self._izq.ticks = 0
-        self._der.ticks = 0
+        self._left.boost = 0.0
+        self._right.boost = 0.0
+        self._left.ticks = 0
+        self._right.ticks = 0
         drivetrain.set_effort(0.0, 0.0)
 
     def start(self):
@@ -138,7 +138,7 @@ class TorqueBoost:
         while True:
             next_tick = time.ticks_add(next_tick, DT_MS)
             l, r = self.feed(self._cmd_l, self._cmd_r)
-            self.aplicar(l, r)
+            self.apply(l, r)
             delay = time.ticks_diff(next_tick, time.ticks_ms())
             if delay <= 0:
                 delay = 1

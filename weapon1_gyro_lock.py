@@ -8,7 +8,7 @@
 #  integral_zone=4, max_integral=3).
 # ---------------------------------------------------------
 # Usage from XRPCode blocks:
-#   from arma1_gyro_lock import gyro_lock
+#   from weapon1_gyro_lock import gyro_lock
 #   gyro_lock.start()                 # once at boot
 #   gyro_lock.engage_straight(0.5)    # straight with locked heading
 #   gyro_lock.hold_pose()             # anti-spin while stopped

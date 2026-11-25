@@ -52,9 +52,9 @@ class Planta:
         # yaw responds to the effort difference (r-l -> CCW)
         self.yaw += (self.eff_r - self.eff_l) * 130.0 * dt
         # wheels start moving on their own with low effort (simple friction)
-        ganancia = 20.0
-        self.l += (self.eff_l * ganancia - self.l) * min(1.0, dt * 8)
-        self.r += (self.eff_r * ganancia - self.r) * min(1.0, dt * 8)
+        gain = 20.0
+        self.l += (self.eff_l * gain - self.l) * min(1.0, dt * 8)
+        self.r += (self.eff_r * gain - self.r) * min(1.0, dt * 8)
 
     # --- signals for XRPLib ---
     def pos_cm(self, rpm):
@@ -124,20 +124,20 @@ defaults.right_motor = drivetrain.right_motor
 sys.modules["XRPLib"] = xrplib
 sys.modules["XRPLib.defaults"] = defaults
 
-faltas = []
+faults = []
 
 def check(nombre, cond, detalle=""):
     estado = "OK " if cond else "FAIL"
     print("[%s] %s %s" % (estado, nombre, detalle))
     if not cond:
-        faltas.append(nombre)
+        faults.append(nombre)
 
 # ---------------- tests ----------------
-import arma1_gyro_lock as a1
-import arma2_torque_boost as a2
-import arma3_curvas as a3
-import arma4_traccion as a4
-import arma5_endgame as a5
+import weapon1_gyro_lock as a1
+import weapon2_torque_boost as a2
+import weapon3_curves as a3
+import weapon4_traction as a4
+import weapon5_endgame as a5
 
 # WEAPON 1: bounded PID, integral only in zone, limited output
 a1.gyro_lock.pid.reset()
@@ -165,55 +165,55 @@ check("A2 boost releases", a2.torque_boost.boost_l < 0.05,
 a2.torque_boost.disable()
 
 # WEAPON 3: cubic curve: properties and round-trip
-check("A3 forma(1)==1", abs(a3.forma(1.0) - 1.0) < 1e-9)
-check("A3 forma(-1)==-1", abs(a3.forma(-1.0) + 1.0) < 1e-9)
-check("A3 fine near zero", abs(a3.forma(0.1)) < 0.05,
-      "y=%.4f" % a3.forma(0.1))
+check("A3 curve(1)==1", abs(a3.curve(1.0) - 1.0) < 1e-9)
+check("A3 curve(-1)==-1", abs(a3.curve(-1.0) + 1.0) < 1e-9)
+check("A3 fine near zero", abs(a3.curve(0.1)) < 0.05,
+      "y=%.4f" % a3.curve(0.1))
 pasa = True
 for x in [0.2, 0.4, 0.6, 0.8]:
-    if abs(a3.invertida(a3.forma(x)) - x) > 0.02:
+    if abs(a3.invert(a3.curve(x)) - x) > 0.02:
         pasa = False
 check("A3 inverse consistent", pasa)
-s = a3.Suavizador(slew=10.0)
+s = a3.SlewRamp(slew=10.0)
 v = 0.0
 for _ in range(3):
     v = s.update(1.0, 0.02)
 check("A3 ramp limits", v < 1.0, "v=%.3f" % v)
 
 # WEAPON 4: ramp + active braking with real brake()
-eje = a4._Eje(drivetrain.left_motor)
-eje.e = 0.0
+axis = a4._Axis(drivetrain.left_motor)
+axis.e = 0.0
 for _ in range(3):
-    e = eje.step(0.5)
+    e = axis.step(0.5)
 check("A4 soft ramp on start", 0.0 < e < 0.5, "e=%.3f" % e)
 planta.l = 40.0
-e = eje.step(0.0)
+e = axis.step(0.0)
 check("A4 inverse pulse", e < -0.2, "e=%.3f" % e)
 planta.l = 1.0
-eje.step(0.0)
+axis.step(0.0)
 check("A4 nails with brake", planta.brakes > 0)
 
 # WEAPON 5: clock, odometry and endgame
-a5.arma5.iniciar_partida()
-a5.arma5.conectar(a1.gyro_lock)
+a5.endgame.start_match()
+a5.endgame.connect(a1.gyro_lock)
 planta.l = planta.r = 20.0             # drives straight
 for _ in range(50):
-    a5.arma5._odometria()
-x, y, th = a5.arma5.pose()
+    a5.endgame._odometry()
+x, y, th = a5.endgame.pose()
 check("A5 advances on +X", x > 5.0 and abs(y) < 0.5, "x=%.1f y=%.1f" % (x, y))
-a5.arma5._t0 = _ticks() - 131000
-check("A5 before endgame (19 s left)", not a5.arma5.is_endgame())
-a5.arma5._t0 = _ticks() - 139000
-check("A5 endgame active", a5.arma5.is_endgame())
-a5.arma5.modo_retorno(True)
+a5.endgame._t0 = _ticks() - 131000
+check("A5 before endgame (19 s left)", not a5.endgame.is_endgame())
+a5.endgame._t0 = _ticks() - 139000
+check("A5 endgame active", a5.endgame.is_endgame())
+a5.endgame.set_return(True)
 a1.gyro_lock.set_target_here()
 a1.gyro_lock.enable()
-a5.arma5._logica_endgame()
+a5.endgame._endgame_logic()
 check("A5 reintroduces live heading", abs(a1.gyro_lock.get_error()) < 20.0,
       "err=%.1f" % a1.gyro_lock.get_error())
 
 print()
-if faltas:
-    print("FAILURES:", faltas)
+if faults:
+    print("FAILURES:", faults)
     sys.exit(1)
 print("ALL TESTS PASS (%d/12)" % 12)

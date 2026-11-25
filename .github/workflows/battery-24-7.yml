@@ -33,7 +33,7 @@ jobs:
         run: |
           export BATERIA_LOGS="$RUNNER_TEMP/logs"
           mkdir -p "$BATERIA_LOGS"
-          bash ci/bateria.sh | tee "$BATERIA_LOGS/output.txt"
+          bash ci/battery.sh | tee "$BATERIA_LOGS/output.txt"
           cat /tmp/summary.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Save battery logs
