@@ -15,8 +15,9 @@ on:
   push:
     branches: [main]
   schedule:
-    - cron: "40 7 * * *"     # daily safety re-arm (chain normally self-triggers)
-  workflow_dispatch: {}      # "Run workflow" button to fire it now
+    - cron: "40 0,6,12,18 * * *"   # backbone re-arm every 6 h (UTC): even if the
+                                   # self-trigger ever fails, a new marathon starts soon
+  workflow_dispatch: {}            # "Run workflow" button to fire it now
 
 concurrency:
   group: batteries-24-7      # never two marathons at once; the next waits its turn
@@ -40,6 +41,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          echo "🔗 CHAIN STATUS — last marathons of batteries-24-7:"
+          gh run list --repo "${{ github.repository }}" --workflow batteries-24-7 \
+            --limit 6 || echo "(could not list runs — not fatal, continuing)"
           mkdir -p /tmp/logs
           START=$(date +%s)
           DEADLINE=$((START + 5 * 3600 + 54 * 60))
@@ -69,7 +73,13 @@ jobs:
           echo "## 🤖 Marathon total: $CYCLE cycles, $FAILS failing" >> "$GITHUB_STEP_SUMMARY"
           echo "💤 Pausing 1 minute, then re-arming the 24/7 chain…"
           sleep 60
-          gh workflow run batteries-24-7 --repo "${{ github.repository }}" --ref main
+          if ! gh workflow run batteries-24-7 --repo "${{ github.repository }}" \
+               --ref main; then
+            echo "⚠️ self re-arm failed — the 6-hour cron backbone will fire the next"
+            echo "   marathon anyway (40 0,6,12,18 * * *). The chain never dies."
+          else
+            echo "✅ next marathon armed — chain continues"
+          fi
 
       - name: Save marathon cycle logs
         if: always()
