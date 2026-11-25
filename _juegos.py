@@ -1,43 +1,43 @@
 # =========================================================
-# JUEGOS INDIVIDUALES Y EN EQUIPO - Team Robots Legends (FUSAMO)
+# INDIVIDUAL AND TEAM GAMES - Team Robots Legends (FUSAMO)
 # ---------------------------------------------------------
-# Bateria multi-modo con el CODIGO REAL de la placa
-# (piloto_gamepad + 5 armas) jugada por el PILOTO KID
-# de _masiva.py (temblor, decisiones ~200 ms, reaccion ~180 ms,
-# ojo con ruido). Modos:
+# Multi-mode battery with the REAL board code
+# (piloto_gamepad + 5 weapons) played by the KID PILOT
+# from _masiva.py (tremor, ~200 ms decisions, ~180 ms reaction,
+# eye with noise). Modes:
 #
-#   CONDUCIR: circuito de 4 puertas en loop (60 s), individual.
-#   SUMO    : duelo de empuje 1 vs 1 en anillo de r=76 cm (45 s).
-#   SUMO2   : EQUIPOS 2 vs 2: nosotros + aliado scriptado vs 2
-#             rivales; ganar = expulsar a los 2 del anillo.
-#   FUTBOL  : pelota fisica 1 vs 1; anotar en el gol (120 s).
-#   FUTBOL2 : EQUIPOS 2 vs 2: pelota + aliado y 2 rivales dinamicos;
-#             gol nuestro arriba (City Center), gol rival cerca de
-#             nuestra pared; gana quien anota mas.
+#   DRIVE   : 4-door circuit in loop (60 s), individual.
+#   SUMO    : 1 vs 1 push duel in a r=76 cm ring (45 s).
+#   SUMO2   : TEAMS 2 vs 2: us + scripted ally vs 2 rivals;
+#             winning = eject both of them from the ring.
+#   SOCCER  : physical ball 1 vs 1; score in the goal (120 s).
+#   SOCCER2 : TEAMS 2 vs 2: ball + ally and 2 dynamic rivals;
+#             our goal at the top (City Center), rival goal near
+#             our wall; whoever scores more wins.
 #
-# PRECISION DEL MANDO: el perfil del piloto se elige con
-# JUEGOS_PILOTO=KID|BUENO|REGULAR|ADULTO (misma tabla que _masiva).
+# STICK PRECISION: the pilot profile is chosen with
+# JUEGOS_PILOTO=KID|BUENO|REGULAR|ADULTO (same table as _masiva).
 #
-# FIDELIDAD DEL MANDO (detectar movimientos contrarios o
-# involuntarios de lo que quiso el piloto; SOLO nuestro bot):
-#   F1 contrario   : intento de avance SOSTENIDO (Y1>0.3 por
-#                    >=15 ticks) y el robot retrocede la mayoria
-#                    de ese tramo (v <-2.5 cm/s). Nunca debe pasar.
-#   F2 derrape     : distancia recorrida tras soltar palancas en
-#                    velocidad alta (el Arma 4 debe clavar; >8 cm fallo).
-#   F3 involuntario: kid con palancas sueltas >1 s y el robot
-#                    se desplazo >3 cm en total.
-#   F4 paneo       : kid SIN tocar X1 >1 s y el rumbo cambio >3
-#                    grados (fuera de ventanas de choque).
-#   F5 latencia    : ms desde Y1>=0.5 hasta ruedas >8 cm/s.
+# STICK FIDELITY (detect movements contrary to or involuntary
+# versus what the pilot wanted; ONLY our bot):
+#   F1 contrary    : SUSTAINED forward intent (Y1>0.3 for
+#                    >=15 ticks) while the robot goes backward for
+#                    most of that stretch (v <-2.5 cm/s). Must never happen.
+#   F2 slide       : distance covered after releasing sticks at
+#                    high speed (Weapon 4 must nail it; >8 cm is a fault).
+#   F3 involuntary : kid with sticks released >1 s while the robot
+#                    moved >3 cm in total.
+#   F4 pan         : kid WITHOUT touching X1 >1 s while the heading changed >3
+#                    degrees (outside crash windows).
+#   F5 latency     : ms from Y1>=0.5 until wheels >8 cm/s.
 #
-# NOTA: las colisiones del equipo/rivales con nuestro robot usan el
-# mismo modelo que 1v1 (empuje reciproco + desliz de encoders en
-# nosotros); el empuje RECIBIDO no cuenta como fallo del mando.
+# NOTE: team/rival collisions with our robot use the same
+# model as 1v1 (reciprocal push + encoder slide on us); the
+# RECEIVED push does not count as a stick fault.
 #
-# USO:   python3 _juegos.py                     (5 modos x 400)
-#        JUEGOS_MODO=SUMO2 JUEGOS_N=300 python3 _juegos.py
-#        JUEGOS_PILOTO=REGULAR JUEGOS_N=200 python3 _juegos.py
+# USAGE:  python3 _juegos.py                     (5 modes x 400)
+#         JUEGOS_MODO=SUMO2 JUEGOS_N=300 python3 _juegos.py
+#         JUEGOS_PILOTO=REGULAR JUEGOS_N=200 python3 _juegos.py
 # =========================================================
 import os
 
@@ -60,33 +60,33 @@ MODO = os.environ.get("JUEGOS_MODO", "TODOS")
 
 T_MODO = {"CONDUCIR": 60000.0, "SUMO": 45000.0, "SUMO2": 45000.0,
           "FUTBOL": 120000.0, "FUTBOL2": 120000.0}
-UMBRAL_AV_KID = 0.30          # Y1 encima: intencion de avanzar
-F1_RACHA_MIN = 15             # ticks (0.3 s) de intencion sostenida
-F1_V_CONTRARIO = -2.5         # cm/s: retroceder con avance ordenado
-F2_CM_MAX = 8.0               # derrape tolerado tras soltar
-F3_CM_MAX = 3.0               # deriva tolerada en quieto
-F4_GRADOS = 3.0               # paneo tolerado sin X1
-F5_V_STALL = 8.0              # cm/s para dar la respuesta
+UMBRAL_AV_KID = 0.30          # Y1 above this: intent to drive forward
+F1_RACHA_MIN = 15             # ticks (0.3 s) of sustained intent
+F1_V_CONTRARIO = -2.5         # cm/s: going backward with forward ordered
+F2_CM_MAX = 8.0               # tolerated slide after releasing
+F3_CM_MAX = 3.0               # tolerated drift while still
+F4_GRADOS = 3.0               # tolerated pan without X1
+F5_V_STALL = 8.0              # cm/s that counts as a response
 
 CIRCUITO = ((35.0, 35.0), (60.0, 70.0), (5.0, 105.0), (-35.0, 55.0))
-R_PUERTA = 20.0               # radio de paso de puerta
+R_PUERTA = 20.0               # door passing radius
 ANILLO_R = 76.0               # sumo
-R_CUERPO = 10.0               # radio de los cuerpos (cm)
+R_CUERPO = 10.0               # body radius (cm)
 PELOTA_R = 4.0
-GOL_XY = (-5.0, 121.0)        # nuestro gol de ataque (City Center)
-GOL_RIVAL_XY = (5.0, 10.0)    # gol que defendemos (cerca de nuestra pared)
-R_GOL = 18.0                  # la pelota entra al gol
-R_PATEO = 14.0                # contacto robot-pelota
-APROX_PELOTA = 2.0            # el kid apunta casi A la pelota: dribble continuo
-GOL2_XY = (-5.0, 127.0)       # en FUTBOL2: nuestro gol de ataque (PARED opuesta)
+GOL_XY = (-5.0, 121.0)        # our attacking goal (City Center)
+GOL_RIVAL_XY = (5.0, 10.0)    # goal we defend (close to our wall)
+R_GOL = 18.0                  # the ball enters the goal
+R_PATEO = 14.0                # robot-ball contact
+APROX_PELOTA = 2.0            # the kid aims almost AT the ball: continuous dribble
+GOL2_XY = (-5.0, 127.0)       # in SOCCER2: our attacking goal (opposite wall)
 SUMO_EXT = float(os.environ.get("JUEGOS_EXT", "56.0"))
-                             # extension del wp "a traves del rival":
-                             # con E>=14 el kid NO entra en la zona de freno
-                             # (FRENA_A_CM desde el wp) y embiste a fondo
+                             # wp extension "through the rival": with
+                             # E>=14 the kid does NOT enter the braking band
+                             # (FRENA_A_CM from the wp) and charges at full
 
-R_GOL2 = 15.0                 # boca de ambos goles de pared (FUTBOL2)
-Y_MAX2 = 132.0                # pared del fondo en FUTBOL2 (campo 137 cm)
-FRICCION_PELOTA = 0.98        # por tick (20 ms): ~1.0 s de rodada real
+R_GOL2 = 15.0                 # mouth of both wall goals (SOCCER2)
+Y_MAX2 = 132.0                # back wall in SOCCER2 (137 cm field)
+FRICCION_PELOTA = 0.98        # per tick (20 ms): ~1.0 s of real rolling
 
 _ORDEN_MODO = {"CONDUCIR": 0, "SUMO": 1, "SUMO2": 2, "FUTBOL": 3, "FUTBOL2": 4}
 
@@ -170,7 +170,7 @@ def partida(modo, seed, MOD):
     T_PARTIDA = T_MODO[modo]
     TICKS = int(T_PARTIDA // 20)
 
-    # ------- Arrange del modo -------
+    # ------- mode setup -------
     puerta = 0
     vueltas = 0
     resultado = ""
@@ -220,7 +220,7 @@ def partida(modo, seed, MOD):
         atascos.append((RNG.uniform(5000, T_PARTIDA * 0.8),
                         RNG.uniform(1500.0, 3000.0), RNG.choice(("L", "R"))))
 
-    # ------- helpers de cuerpos scriptados -------
+    # ------- scripted-body helpers -------
     def _chase(c, wx, wy, vmax):
         aa = math.atan2(wy - c.y, wx - c.x)
         c.vx += (math.cos(aa) * vmax - c.vx) * 0.25
@@ -249,19 +249,19 @@ def partida(modo, seed, MOD):
             DRV.yaw += RNG.uniform(-8.0, 8.0)
         if dist < 1.6 * R_CUERPO:
             sep = (1.6 * R_CUERPO - dist) * 0.5
-            # a nosotros nos corren las ruedas; lo proyectamos como
-            # desliz del encoder (empuje externo), CAPADO por tick para
-            # que una penetracion profunda no dispare la odometria
+            # they run our wheels; we project it as encoder slide
+            # (external push), CAPPED per tick so a deep penetration
+            # does not blow up the odometry
             desliz = min(sep * 0.25, 0.3)
             DRV.LEFT.pos_cm -= nx * desliz
             DRV.RIGHT.pos_cm -= nx * desliz
-            # el desplazamiento escala con la masa rival: la "masa"
-            # modela el peso de empuje del rival sobre el contacto
+            # displacement scales with rival mass: "mass" models the
+            # rival's push weight on the contact point
             c.x += nx * sep * 0.5 * masa
             c.y += ny * sep * 0.5 * masa
         return True
 
-    # ------- fidelidad -------
+    # ------- fidelity -------
     f1_ticks = 0
     f1_racha = 0
     f1_contrario = 0
@@ -285,7 +285,7 @@ def partida(modo, seed, MOD):
         SIM.RELOJ.avanzar(20)
         t = SIM.RELOJ.ticks_ms()
 
-        # ---------- piloto KID ----------
+        # ---------- KID pilot ----------
         if k == 0:
             pad.botones[GP.START - 4] = 1
         else:
@@ -302,28 +302,28 @@ def partida(modo, seed, MOD):
                 cero = min(vivos, key=lambda c: (c.x - px) ** 2 + (c.y - py) ** 2)
                 drc = math.hypot(cero.x, cero.y)
                 if drc > 1e-6:
-                    # empuje sostenido: wp MAS ALLA del rival hacia el
-                    # borde, asi el nino nunca suelta el contacto
+                    # sustained push: wp BEYOND the rival toward the wall,
+                    # so the kid never releases contact
                     kid.wp_x = cero.x + cero.x / drc * SUMO_EXT
                     kid.wp_y = cero.y + cero.y / drc * SUMO_EXT
                     if modo == "SUMO2":
-                        # en equipo el kid no persigue puntos fuera del
-                        # anillo: con 2 rivales encima se auto-expulsaria
+                        # in teams the kid does not chase points outside the
+                        # ring: with 2 rivals on him he would self-eject
                         dw = math.hypot(kid.wp_x, kid.wp_y)
                         if dw > ANILLO_R - 12.0:
                             kid.wp_x *= (ANILLO_R - 12.0) / dw
                             kid.wp_y *= (ANILLO_R - 12.0) / dw
         elif modo == "FUTBOL":
-            # el kid NO puede retroceder y un contacto tangencial clava la
-            # pelota contra banda (traza: la pelota murio en la esquina y el
-            # kid orbito a 2 cm/s). Tactica en 3 roles:
-            #   ALINEADO  -> carrerilla A TRAVES del arco (wp 35 cm despues del
-            #                gol: no cae en su banda de frenado antes de anotar)
-            #   EN CONTACTO desalineado -> esquiva lateral 26 cm por SU lado,
-            #                alejandose ANTES de volver a entrar (moverse hacia
-            #                aca no patea: salio del radio de contacto)
-            #   DESPEJADO  -> punto de entrada 24 cm DETRAS de la pelota, con
-            #                trayectoria libre (rodearla y volver a alinear)
+            # the kid CANNOT reverse and a tangential contact pins the
+            # ball against the wall (trace: the ball died in the corner and
+            # the kid orbited at 2 cm/s). Tactics in 3 roles:
+            #   ALIGNED    -> dash THROUGH the goal (wp 35 cm past the goal:
+            #                 he does not fall in his braking band before scoring)
+            #   IN CONTACT misaligned -> lateral dodge 26 cm on HIS side,
+            #                 moving away BEFORE re-entering (moving toward
+            #                 home does not kick: he left the contact radius)
+            #   CLEAR      -> entry point 24 cm BEHIND the ball, with a free
+            #                 path (go around it and re-align)
             atq = GOL_XY
             ang_gol = math.atan2(atq[1] - pelota.y, atq[0] - pelota.x)
             cg, sg = math.cos(ang_gol), math.sin(ang_gol)
@@ -343,16 +343,16 @@ def partida(modo, seed, MOD):
                 kid.wp_x = pelota.x - cg * 24.0
                 kid.wp_y = pelota.y - sg * 24.0
         elif modo == "FUTBOL2":
-            # aqui el kid es SOPORTE: se queda CASI a la pelota (a +6
-            # no alcanza R_PATEO y no la toca: con punteria de nino sus
-            # palazos rompen el juego del aliado experto, probado en A/B)
+            # here the kid is SUPPORT: it stays NEAR the ball (at +6
+            # it does not reach R_PATEO and does not touch it: with kid
+            # aim its whacks break the expert ally's play, A/B proven)
             atq = GOL2_XY
             ang_gol = math.atan2(atq[1] - pelota.y, atq[0] - pelota.x)
             kid.wp_x = pelota.x + math.cos(ang_gol) * 6.0
             kid.wp_y = pelota.y + math.sin(ang_gol) * 6.0
         kid.paso(t, (px, py, pth), SIM.IMU.get_yaw())
 
-        # eventos del modo (verdad del campo)
+        # mode events (field ground truth)
         if modo == "CONDUCIR" and t >= 1000:
             if math.hypot(px - kid.wp_x, py - kid.wp_y) < R_PUERTA:
                 puerta += 1
@@ -366,8 +366,8 @@ def partida(modo, seed, MOD):
                     continue
                 if _empuja_robot(rc, masa_r, px, py):
                     continue        # en contacto SOLO empuje (como 1v1)
-                                # sumo: en 1v1 carga directo; en 2v2 postura entre presa
-                # y centro, carga de cerca y autocuidado cerca del borde
+                                # sumo: in 1v1 charges straight; in 2v2 posture between prey
+                # and center, charges from close and self-cares near the edge
                 if aliado:
                     dkid = (px - rc.x) ** 2 + (py - rc.y) ** 2
                     dali = ((aliado[0].x - rc.x) ** 2 +
@@ -430,10 +430,10 @@ def partida(modo, seed, MOD):
                        mando.nombre_modo(), pad.axes[1]))
             nosotros_afuera = math.hypot(px, py) > ANILLO_R
             if riv_fuera == len(rivales) and not nosotros_afuera:
-                resultado = "GANAMOS"
+                resultado = "WON"
                 break
             if nosotros_afuera and riv_fuera < len(rivales):
-                resultado = "PERDEMOS"
+                resultado = "LOST"
                 break
 
         elif modo in ("FUTBOL", "FUTBOL2"):
@@ -460,10 +460,10 @@ def partida(modo, seed, MOD):
                                         GOL_RIVAL_XY[1] - pelota.y)
                         axn = (GOL_RIVAL_XY[0] - pelota.x) / max(dr, 1e-6)
                         ayn = (GOL_RIVAL_XY[1] - pelota.y) / max(dr, 1e-6)
-                        # rodean la pelota por lados opuestos (no se apilan)
+                        # they surround the ball from opposite sides (no piling up)
                         lat = 7.0 if ri == 0 else -7.0
-                        # rivales tambien son ninos: deciden cada 220-450 ms
-                        # y ven la pelota con ruido de +-5 cm
+                        # rivals are kids too: they decide every 220-450 ms
+                        # and see the ball with +-5 cm of noise
                         info["wx"] = (pelota.x - axn * 10.0 - ayn * lat +
                                       RNG.uniform(-5.0, 5.0))
                         info["wy"] = (pelota.y - ayn * 10.0 + axn * lat +
@@ -479,8 +479,8 @@ def partida(modo, seed, MOD):
                                          GOL_RIVAL_XY[1] - pelota.y)
                         axn = (GOL_RIVAL_XY[0] - pelota.x) / max(dr2, 1e-6)
                         ayn = (GOL_RIVAL_XY[1] - pelota.y) / max(dr2, 1e-6)
-                        # nino real: CONDUCE con empujones lejos del arco,
-                        # solo TIRA a menos de 45 cm del arco
+                        # real kid: DRIVES with shoves away from the goal,
+                        # only SHOOTS inside 45 cm of the goal
                         v = math.hypot(rc.vx, rc.vy)
                         if dr2 < 30.0:
                             ru = RNG.uniform(-0.8, 0.8)
@@ -491,16 +491,16 @@ def partida(modo, seed, MOD):
                         cr, sr = math.cos(ru), math.sin(ru)
                         pelota.vx = (axn * cr - ayn * sr) * vf
                         pelota.vy = (axn * sr + ayn * cr) * vf
-                        # balance 2v2: cd del rival (antes 800) para que
-                        # el kid + aliado puedan disputar la pelota
+                        # 2v2 balance: rival cooldown (was 800) so the
+                        # kid + ally can contest the ball
                         info["pateo"] = t + 1200.0
                         if os.environ.get("JUEGOS_DEBUG"):
                             dbg["rk"] += 1
                 if aliado:
-                    # aliado CON LAS ARMAS (mismo software que nosotros):
-                    # cazapelota directo, sin retardo de decision; en caja
-                    # de NUESTRO arco defiende la boca (entre pelota y
-                    # linea de gol) y despeja, fuera conduce o tira.
+                    # ally WITH THE WEAPONS (same software as ours): direct
+                    # ball hunter, no decision delay; inside OUR goal box it
+                    # defends the mouth (between ball and goal line) and
+                    # clears, outside it drives or shoots.
                     dp_gol = math.hypot(pelota.x - GOL_RIVAL_XY[0],
                                         pelota.y - GOL_RIVAL_XY[1])
                     da = math.hypot(GOL2_XY[0] - pelota.x,
@@ -509,7 +509,7 @@ def partida(modo, seed, MOD):
                     v_pelota = math.hypot(pelota.vx, pelota.vy)
                     if en_caja:
                         if v_pelota > 12.0:
-                            # tiro en curso: se planta en la LINEA pelota-gol
+                            # shot in progress: it stands on the ball-goal LINE
                             gx = GOL_RIVAL_XY[0] + (pelota.x -
                                                     GOL_RIVAL_XY[0]) / \
                                 max(dp_gol, 1e-6) * 9.0
@@ -517,7 +517,7 @@ def partida(modo, seed, MOD):
                                                     GOL_RIVAL_XY[1]) / \
                                 max(dp_gol, 1e-6) * 9.0
                         else:
-                            # pelota lenta en nuestra caja: sale A DISPUTARLA
+                            # slow ball in our box: comes OUT TO CONTEST IT
                             gx, gy = pelota.x, pelota.y
                         _chase(aliado[0], gx, gy, aliado[1] + 5.0)
                     else:
@@ -530,8 +530,8 @@ def partida(modo, seed, MOD):
                             t >= aliado_cd[0] and v_pel_ok):
                         cr, sr = 1.0, 0.0
                         if dp_gol < da:
-                            # despeje LARGO hacia arriba del campo
-                            # (nunca contra la pared lateral)
+                            # LONG clear toward the top of the field
+                            # (never against the side wall)
                             axn = (GOL2_XY[0] - pelota.x) / \
                                 max(da, 1e-6)
                             ayn = (GOL2_XY[1] - pelota.y) / \
@@ -620,7 +620,7 @@ def partida(modo, seed, MOD):
                        pelota.vx, pelota.vy, dist, kid.wp_x, kid.wp_y,
                        pad.axes[1], mando.nombre_modo(), resto))
 
-        # ---------- fisica hostil ----------
+        # ---------- hostile physics ----------
         for lo, dur, rueda in atascos:
             if lo <= t < lo + dur:
                 DRV.LEFT.atascada = (rueda == "L")
@@ -643,7 +643,7 @@ def partida(modo, seed, MOD):
         arma5._logica_endgame()
         DRV.paso(0.02)
 
-        # ---------- fidelidad del mando ----------
+        # ---------- stick fidelity ----------
         p2 = arma5.pose()
         pth_rad = math.radians(pth)
         dprog = (p2[0] - prev_pose[0]) * math.cos(pth_rad) + \
@@ -654,7 +654,7 @@ def partida(modo, seed, MOD):
         x1i = kid.x1
         yaw_now = SIM.IMU.get_yaw()
 
-        # el rival que nos empuja NO es un defecto del mando
+        # the rival pushing us is NOT a stick defect
         empujados = (t - contact_t[0] < 1000) or \
             any(lo - 200 <= t <= lo + 1000 for lo in choques)
         if not empujados and y1i > UMBRAL_AV_KID:
@@ -764,14 +764,14 @@ def partida(modo, seed, MOD):
     if f1_racha >= F1_RACHA_MIN and f1_contrario * 2 > f1_racha:
         f1_ticks += f1_racha
         if "JUEGOS_TRACE" in os.environ:
-            print("F1 FINAL racha=%d contrario=%d (%s)" %
+            print("F1 FINAL streak=%d opposite=%d (%s)" %
                   (f1_racha, f1_contrario, resultado))
 
     if os.environ.get("JUEGOS_DEBUG"):
         gn = dbg.get("gol_n", 0)
         print("DBG %s kicks rk=%d ak_def=%d ak_atq=%d kk=%d "
               "bal_lo=%d bal_hi=%d metas=%d contra=%d "
-              "gol_v_media=%.1f" %
+              "gol_v_avg=%.1f" %
               (modo, dbg["rk"], dbg["ak_def"], dbg["ak_atq"], dbg["kk"],
                dbg["bal_lo"], dbg["bal_hi"], metas, contra,
                (dbg.get("gol_v", 0.0) / gn) if gn else -1))
@@ -780,18 +780,18 @@ def partida(modo, seed, MOD):
         riv_fuera = sum(1 for c, _v, _m in rivales
                         if c.fuera or math.hypot(c.x, c.y) > ANILLO_R)
         if modo == "SUMO":
-            resultado = "EMPATE"
+            resultado = "DRAW"
         else:
-            resultado = "GANAMOS" if riv_fuera == len(rivales) else \
-                "EMPATE outs=%d" % riv_fuera
+            resultado = "WON" if riv_fuera == len(rivales) else \
+                "DRAW outs=%d" % riv_fuera
     if modo == "CONDUCIR":
-        resultado = "puertas=%d" % puerta
+        resultado = "doors=%d" % puerta
     elif modo in ("FUTBOL", "FUTBOL2"):
         if modo == "FUTBOL":
-            resultado = "metas=%d" % metas
+            resultado = "goals=%d" % metas
         else:
-            resultado = ("GANAMOS" if metas > contra else
-                         "PERDEMOS" if metas < contra else "EMPATE") + \
+            resultado = ("WON" if metas > contra else
+                         "LOST" if metas < contra else "DRAW") + \
                 " %d-%d" % (metas, contra)
 
     f5_med = sum(f5_ms) / len(f5_ms) if f5_ms else -1.0
@@ -801,7 +801,7 @@ def partida(modo, seed, MOD):
             "kicks": kicks if modo in ("FUTBOL", "FUTBOL2") else -1,
             "puertas": puerta if modo == "CONDUCIR" else -1,
             "vueltas": vueltas if modo == "CONDUCIR" else -1,
-            "gano": ("GANAMOS" in resultado) if modo in ("SUMO", "SUMO2",
+            "gano": ("WON" in resultado) if modo in ("SUMO", "SUMO2",
                                                          "FUTBOL2") else False,
             "f1": f1_ticks, "f2": f2_eventos, "f2_cm": f2_peor,
             "f3": f3_eventos, "f4": f4_eventos, "f5": f5_med}
@@ -821,22 +821,22 @@ def evaluacion(modo, n):
     f4 = sum(1 for r in m if r["f4"] > 0)
     f5_ok = [r["f5"] for r in m if r["f5"] > 0]
     f5_med = sum(f5_ok) / len(f5_ok) if f5_ok else -1
-    print("\n== MODO %s : %d partidas %s ==" % (modo, len(m), PILOTO))
+    print("\n== MODE %s : %d matches %s ==" % (modo, len(m), PILOTO))
     if modo in ("SUMO", "SUMO2"):
         g = sum(1 for r in m if r["gano"])
-        p = sum(1 for r in m if r["resultado"].startswith("PERDEMOS"))
-        print("%s ganadas %.1f%% / perdidas %.1f%% / empates %.1f%%" %
+        p = sum(1 for r in m if r["resultado"].startswith("LOST"))
+        print("%s won %.1f%% / lost %.1f%% / draws %.1f%%" %
               (modo, 100.0 * g / len(m), 100.0 * p / len(m),
                100.0 * (len(m) - g - p) / len(m)))
     elif modo in ("FUTBOL", "FUTBOL2"):
         gs = [r["metas"] for r in m]
         ks = [r["kicks"] for r in m]
         g = sum(1 for r in m if r["gano"])
-        p = sum(1 for r in m if r["resultado"].startswith("PERDEMOS"))
-        extra = "  encajadas media %.2f" % \
+        p = sum(1 for r in m if r["resultado"].startswith("LOST"))
+        extra = "  conceded avg %.2f" % \
             (sum(r["contra"] for r in m) / len(m)) if modo == "FUTBOL2" else ""
-        print("%s goles: media %.2f [0:%d 1:%d 2:%d 3+:%d] kicks/p %.1f | "
-              "ganamos %.1f%% / perdemos %.1f%%%s" %
+        print("%s goals: avg %.2f [0:%d 1:%d 2:%d 3+:%d] kicks/p %.1f | "
+              "we-win %.1f%% / we-lose %.1f%%%s" %
               (modo, sum(gs) / len(gs), gs.count(0), gs.count(1),
                gs.count(2), sum(1 for x in gs if x >= 3),
                sum(ks) / len(ks), 100.0 * g / len(m),
@@ -844,17 +844,17 @@ def evaluacion(modo, n):
     else:
         ps = [r["puertas"] for r in m]
         vs = [r["vueltas"] for r in m]
-        print("CONDUCIR puertas: media %.2f  min %d  max %d | "
-              "vueltas completas: media %.2f  max %d" %
+        print("DRIVE doors: avg %.2f  min %d  max %d | "
+              "full laps: avg %.2f  max %d" %
               (sum(ps) / len(ps), min(ps), max(ps),
                sum(vs) / len(vs), max(vs)))
-    print("FIDELIDAD: contrarios(F1)=%d  derrape(F2)=%d  involuntarios(F3)=%d  "
-          "paneo(F4)=%d | latencia media=%.0f ms" % (f1, f2, f3, f4, f5_med))
+    print("FIDELITY: opposites(F1)=%d  slide(F2)=%d  involuntary(F3)=%d  "
+          "pan(F4)=%d | avg latency=%.0f ms" % (f1, f2, f3, f4, f5_med))
     malos = [r for r in m if r["f1"] > 25 or r["f2"] or r["f3"] or r["f4"]]
     if malos:
-        print("  partidas con fallo: %d/%d" % (len(malos), len(m)))
+        print("  matches with fault: %d/%d" % (len(malos), len(m)))
         for r in malos[:5]:
-            print("  semilla %d: f1=%d f2=%d(%.1fcm) f3=%d f4=%d  %s" %
+            print("  seed %d: f1=%d f2=%d(%.1fcm) f3=%d f4=%d  %s" %
                   (r["seed"], r["f1"], r["f2"], r["f2_cm"],
                    r["f3"], r["f4"], r["resultado"]))
     return m
@@ -871,8 +871,8 @@ def campania_juegos():
         modos = ("CONDUCIR", "SUMO", "SUMO2", "FUTBOL", "FUTBOL2")
     else:
         modos = (MODO,)
-    print("== CAMPAÑA JUEGOS INDIVIDUALES Y EN EQUIPO == piloto=%s "
-          "n=%d/%s procesos=%d" % (PILOTO, N_PARTIDAS, MODO, WORKERS))
+    print("== CAMPAIGN INDIVIDUAL AND TEAM GAMES == pilot=%s "
+          "n=%d/%s processes=%d" % (PILOTO, N_PARTIDAS, MODO, WORKERS))
     for modo in modos:
         evaluacion(modo, N_PARTIDAS)
 

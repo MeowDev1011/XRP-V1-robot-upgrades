@@ -1,44 +1,45 @@
 # =========================================================
-# ARMA 4: FRENADO ACTIVO Y CONTROL ANTI-DERRAPE
+# WEAPON 4: ACTIVE BRAKING & ANTI-SLIP CONTROL
 # (Traction & Brake Assist)
 # Team Robots Legends - FUSAMO - XRP Iron Acres
 # ---------------------------------------------------------
-# Dos sistemas por eje:
-#  1) RAMPA ANTI-PATINAJE: el esfuerzo sube/baja con limite de
-#     pendiente (unidades/seg). Al arrancar desde cero el
-#     esfuerzo crece solo tan rapido como RAMPA_MAX permita
-#     (mas suave aun justo en el arranque), y se congela si la
-#     rueda gira mucho mas rapido que el modelo (derrape).
-#  2) FRENADO ACTIVO: cuando la orden vuelve a cero con la
-#     rueda girando, aplica un pulso INVERSO proporcional a la
-#     velocidad medida (get_speed()) y, al caer la velocidad,
-#     clava la rueda con motor.brake() (descubierto en el
-#     fuente oficial: DualPWMMotor.brake energiza ambos
-#     sentidos a la vez = posicion mantenida con motor vivo).
+# Two systems per axis:
+#  1) ANTI-SLIP RAMP: effort rises/falls with a slope limit
+#     (units/second). Starting from zero, effort grows only
+#     as fast as RAMPA_MAX allows (even softer right at the
+#     start) and freezes if the wheel spins much faster than
+#     the model expects (slip).
+#  2) ACTIVE BRAKING: when the order returns to zero with the
+#     wheel still spinning, applies an inverse PULSE
+#     proportional to the measured speed (get_speed()) and,
+#     once the speed drops, nails the wheel with motor.brake()
+#     (discovered in the official source: DualPWMMotor.brake
+#     energizes both directions at once = held position with
+#     a live motor).
 # ---------------------------------------------------------
-# Este modulo es el DUENO de los motores cuando esta activo:
-#   arma4.set_command(l, r)  <- el resto del sistema ordena aqui
-#   arma4.start()            <- tarea 50 Hz que escribe los motores
-# Cadena recomendada (ver README):
-#   gyro_lock.attach(gancho)  con
-#   gancho(l, r): l, r = torque_boost.feed(l, r); arma4.set_command(l, r)
+# This module OWNS the motors when active:
+#   arma4.set_command(l, r)  <- the rest of the system commands here
+#   arma4.start()            <- 50 Hz task that writes the motors
+# Recommended chain (see README):
+#   gyro_lock.attach(hook)  with
+#   hook(l, r): l, r = torque_boost.feed(l, r); arma4.set_command(l, r)
 # =========================================================
 import uasyncio as asyncio
 import time
 from XRPLib.defaults import drivetrain, left_motor, right_motor
 
 # ------------------------------------------------------------
-# CALIBRACION EN PISTA
+# ON-TRACK CALIBRATION
 # ------------------------------------------------------------
-RAMPA_MAX       = 3.0    # esfuerzo por segundo (0 -> 0.5 en ~170 ms)
+RAMPA_MAX       = 3.0    # effort per second (0 -> 0.5 in ~170 ms)
 DT_MS           = 20
-RPM_FRENO_MIN   = 3.0    # bajo este rpm se considera detenido -> brake()
-PULSO_K         = 0.012  # fuerza del pulso inverso por rpm de giro
-PULSO_MAX       = 0.45   # techo del pulso inverso
-RPM_ARRANQUE    = 5.0    # rpm por debajo de las cuales se rampa extra suave
-KS              = 0.12   # modelo de fabrica (igual que el Arma 2)
+RPM_FRENO_MIN   = 3.0    # below this rpm we are "stopped" -> brake()
+PULSO_K         = 0.012  # strength of the inverse pulse per rpm of spin
+PULSO_MAX       = 0.45   # ceiling of the inverse pulse
+RPM_ARRANQUE    = 5.0    # rpm below which the extra-soft ramp applies
+KS              = 0.12   # factory model (same as Weapon 2)
 KV              = 0.02
-PATINAJE_MARGEN = 10.0   # rpm por encima de lo esperado = sospecha de derrape
+PATINAJE_MARGEN = 10.0   # rpm above expected = slip suspicion
 
 LIBRE    = 0
 FRENANDO = 1
@@ -47,7 +48,7 @@ _NOMBRES_ESTADO = ("LIBRE", "FRENANDO", "CLAVADO")
 
 
 class _Eje:
-    """Maquina de estados de un eje: LIBRE / FRENANDO / CLAVADO."""
+    """State machine of one axis: LIBRE / FRENANDO / CLAVADO."""
 
     def __init__(self, motor):
         self.motor = motor
@@ -61,12 +62,12 @@ class _Eje:
             self.estado = LIBRE
             paso = RAMPA_MAX * (DT_MS / 1000.0)
             if abs(real) < RPM_ARRANQUE:
-                paso *= 0.5            # arranque desde parado: EXTRA suave
+                paso *= 0.5            # start from rest: EXTRA soft
             diff = cmd - self.e
             esperado = (abs(cmd) - KS) / KV
             subiendo = abs(self.e) < abs(cmd)
             if subiendo and abs(real) > esperado + PATINAJE_MARGEN:
-                pass                   # guardia de derrape: congelar rampa
+                pass                   # slip guard: freeze the ramp
             elif abs(diff) <= paso:
                 self.e = cmd
             else:
@@ -94,7 +95,7 @@ class TractionBrake:
         self._cmd_r = 0.0
         self._task = None
 
-    # ---------------- estado observable para telemetria ----------------
+    # ---------------- observable state for telemetry ----------------
     @property
     def estado_izq(self):
         return _NOMBRES_ESTADO[self._izq.estado]
@@ -107,7 +108,7 @@ class TractionBrake:
     def clavado(self):
         return self._izq.estado == CLAVADO and self._der.estado == CLAVADO
 
-    # ---------------- ordenes ----------------
+    # ---------------- orders ----------------
     def set_command(self, left, right):
         self._cmd_l = left
         self._cmd_r = right
@@ -124,8 +125,8 @@ class TractionBrake:
         drivetrain.set_effort(0.0, 0.0)
 
     def paso(self):
-        """Un ciclo de control. La tarea _run() lo llama a 50 Hz;
-        tambien sirve para el robot virtual (paso manual)."""
+        """One control cycle. The _run() task calls it at 50 Hz;
+        it also works for the virtual robot (manual step)."""
         if not self.enabled:
             return
         l = self._izq.step(self._cmd_l)

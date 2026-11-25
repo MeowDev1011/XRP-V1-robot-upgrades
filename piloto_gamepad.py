@@ -1,33 +1,34 @@
 # =========================================================
-# MANDO FISICO (GAMEPAD): TELEOPERACION + 5 ARMAS EN VIVO
+# PHYSICAL GAMEPAD: TELEOPERATION + 5 WEAPONS LIVE
 # Team Robots Legends - FUSAMO - XRP Iron Acres
 # ---------------------------------------------------------
-# La partida se juega con un GAMEPAD fisico (Logitech/Xbox)
-# conectado a la computadora de operacion. Esa computadora
-# envia ejes y botones al XRP por Bluetooth (protocolo XPP
-# de XRPLib) a 50 Hz. En la placa: XRPLib.gamepad.
+# The match is played with a PHYSICAL GAMEPAD (Logitech/Xbox)
+# connected to the operator's computer. That computer sends
+# axes and buttons to the XRP over Bluetooth (XRPLib's XPP
+# protocol) at 50 Hz. On the board: XRPLib.gamepad.
 #   from XRPLib.gamepad import Gamepad
 #   pad = Gamepad.get_default_gamepad()
 #   pad.get_value(pad.Y1), pad.is_button_pressed(pad.START)
 #
-# ESTE MODULO NO ES UNA MACRO: es un lazo continuo de 50 Hz
-# (uasyncio + ticks_ms, CERO sleep bloqueante) que en cada
-# ciclo:
-#   1. Lee los ejes Y1 (avance) y X1 (giro) del mando.
-#   2. Aplica las CURVAS del Arma 3 a las palancas.
-#   3. Elige modo de conduccion con transiciones limpias:
-#        RECTO  = palanca de giro suelta -> Gyro-Lock PID
-#                 (Arma 1) sostiene el rumbo capturado.
-#        GIRO   = el piloto gira; el Arma 1 se retira.
-#        PARADO = palancas sueltas -> frenado activo del
-#                 Arma 4 (CLAVADO) + anti-trompo en parado.
-#        RETORNO= endgame (A5) conduce a casa SOLO si el
-#                 piloto suelta las palancas.
-#   4. Todo esfuerzo sale por la cadena: Arma 2 (anti-atasco)
-#      -> Arma 4 (rampa anti-derrape, DUEÑO de los motores).
-#   Botones: START = armar reloj/odometria (A5). BACK = activa
-#   o desactiva la asistencia de retorno del endgame.
-#   Las palancas SIEMPRE contramandan: el piloto manda.
+# THIS MODULE IS NOT A MACRO: it is a continuous 50 Hz loop
+# (uasyncio + ticks_ms, ZERO blocking sleeps) that every
+# cycle:
+#   1. Reads the Y1 (forward) and X1 (turn) axes.
+#   2. Applies the WEAPON 3 curves to the sticks.
+#   3. Picks the driving mode with clean transitions:
+#        STRAIGHT = turn stick released -> Gyro-Lock PID
+#                   (Weapon 1) holds the captured heading.
+#        TURN     = the pilot is turning; Weapon 1 steps out.
+#        STOP     = sticks released -> active braking of
+#                   Weapon 4 (NAILED) + anti-spin at rest.
+#        RETURN   = endgame (W5) drives home ONLY if the
+#                   pilot released the sticks.
+#   4. Every effort goes through the chain: Weapon 2 (anti-
+#      stall) -> Weapon 4 (anti-slip ramp, OWNER of the
+#      motors).
+#   Buttons: START = arm clock/odometry (W5). BACK = toggles
+#   the endgame return assist. Sticks ALWAYS countermand:
+#   the pilot rules.
 # =========================================================
 import uasyncio as asyncio
 import time
@@ -40,26 +41,26 @@ from arma4_traccion import traction_brake
 from arma5_endgame import arma5
 
 # ------------------------------------------------------------
-# CALIBRACION EN PISTA
+# ON-TRACK CALIBRATION
 # ------------------------------------------------------------
-DT_MS       = 20     # periodo del lazo (50 Hz)
-GIRO_MIN    = 0.08   # palanca de giro sobre esta curva = PILOTO gira
-AV_MIN      = 0.02   # umbral de avance asistido
-SLEW_PREC   = 1.8    # rampa de palanca en modo precision (BUMPER_L)
-TRIM_UMBRAL = 0.12   # palanca cruda FILTRADA sobre esto: recorte de rumbo
-TRIM_SAT    = 0.25   # palanca aqui o mas = recorte a maxima velocidad
-                     # (0.25 es la palanca cruda que produce GIRO_MIN: sin
-                     #  zona muerta entre el recorte y el giro del piloto)
-TRIM_GRADOS_S = 60.0 # recorte maximo (grados/s)
-TRIM_TAU    = 0.25   # filtro EMA de la palanca (s): anula el temblor del
-                     # piloto kid (media cero) y deja pasar el empuje real
-ASENTAR_MAX_MS = 600  # al salir de GIRO: tope de la fase de asentamiento
-                     # (frenado activo del Arma 4 mientras muere el momento
-                     # de diferencial; capturar el rumbo antes seria bloquear
-                     # un objetivo que el momento todavia va a tirar 5-18
-                     # grados)
-ASENTAR_TASA = 45.0  # grados/s de velocidad de viraje por debajo de la cual
-                     # el momento ya murio y se puede capturar el rumbo
+DT_MS       = 20     # loop period (50 Hz)
+GIRO_MIN    = 0.08   # turn stick above this curve = PILOT is turning
+AV_MIN      = 0.02   # assisted-drive threshold
+SLEW_PREC   = 1.8    # stick ramp in precision mode (BUMPER_L)
+TRIM_UMBRAL = 0.12   # FILTERED raw stick above this: heading trim
+TRIM_SAT    = 0.25   # stick here or above = trim at max speed
+                     # (0.25 is the raw stick that produces GIRO_MIN: no
+                     #  dead space between the trim and the pilot's turn)
+TRIM_GRADOS_S = 60.0 # maximum trim (degrees/s)
+TRIM_TAU    = 0.25   # stick EMA filter (s): cancels the kid pilot's
+                     # tremor (zero-mean) and lets the real push through
+ASENTAR_MAX_MS = 600  # leaving TURN: cap of the settling phase
+                     # (Weapon 4 active braking while the differential
+                     # momentum dies; capturing the heading earlier would
+                     # lock a target the momentum is still going to drag
+                     # 5-18 degrees)
+ASENTAR_TASA = 45.0  # deg/s of turn rate below which the momentum has
+                     # already died and the heading can be captured
 
 PARADO, RECTO, GIRO, RETORNO = 0, 1, 2, 3
 _NOMBRES = ("PARADO", "RECTO", "GIRO", "RETORNO")
@@ -70,7 +71,7 @@ def _wrap180(a):
 
 
 class Mando:
-    """Consola del piloto: gamepad -> curvas -> armas -> motores."""
+    """Pilot's console: gamepad -> curves -> weapons -> motors."""
 
     def __init__(self):
         self.pad = None
@@ -82,7 +83,7 @@ class Mando:
         self._yaw_prev = None
         self.n_partidas = 0
 
-    # ---------------- configuracion ----------------
+    # ---------------- configuration ----------------
     def conectar(self, pad):
         self.pad = pad
         return self
@@ -90,18 +91,18 @@ class Mando:
     def nombre_modo(self):
         return _NOMBRES[self._modo]
 
-    # ---------------- botones (con deteccion de flanco) ----------------
+    # ---------------- buttons (edge detection) ----------------
     def _borde(self, btn):
         act = bool(self.pad.is_button_pressed(btn))
         prev = self._btn_prev.get(btn, False)
         self._btn_prev[btn] = act
         return act and not prev
 
-    # ---------------- mezcla arcade (convencion oficial XRPLib) ----------------
+    # ---------------- arcade mix (official XRPLib convention) ----------------
     @staticmethod
     def _arcade(v, g):
-        """left = v - g, right = v + g, escalado para no recortar.
-        Con marcha atras el giro se invierte (steer toward stick)."""
+        """left = v - g, right = v + g, scaled to avoid clipping.
+        In reverse the turn inverts (steer toward stick)."""
         if v == 0.0 and g == 0.0:
             return 0.0, 0.0
         if v < 0.0:
@@ -109,12 +110,12 @@ class Mando:
         s = max(abs(v), abs(g)) / (abs(v) + abs(g))
         return (v - g) * s, (v + g) * s
 
-    # ---------------- UN ciclo de control (50 Hz) ----------------
+    # ---------------- ONE control cycle (50 Hz) ----------------
     def _paso(self):
         if self.pad is None:
             return
 
-        # botones de eventos
+        # event buttons
         if self._borde(self.pad.START):
             imu.reset_yaw()
             gyro_lock.set_target_here()
@@ -123,7 +124,7 @@ class Mando:
         if self._borde(self.pad.BACK):
             arma5.modo_retorno(not arma5.retorno_on)
 
-        # curvas del Arma 3 sobre las palancas
+        # Weapon 3 curves over the sticks
         mix = curvas.MIX_PRECIS if self.pad.is_button_pressed(self.pad.BUMPER_L) else curvas.MIX
         slew = SLEW_PREC if self.pad.is_button_pressed(self.pad.BUMPER_L) else curvas.SLEW_DEF
         curvas.suav_avance.slew = slew
@@ -136,11 +137,11 @@ class Mando:
         g = curvas.suav_giro.update(
             curvas.forma(x_raw, mix), dt)
 
-        # seleccion de modo (transiciones limpias, CON HISTERESIS:
-        # salir de GIRO solo al bajar de la mitad del umbral evita el
-        # aleteo GIRO/RECTO del temblor, que re-captura rumbo a cada
-        # flanco y deja paneos residuales con la palanca ya quieta)
-        if False:                      # TEST: histeresis desactivada
+        # mode selection (clean transitions, WITH HYSTERESIS:
+        # leaving TURN only below half the threshold avoids TURN/STRAIGHT
+        # chatter from the tremor, which re-captured the heading at every
+        # edge and left residual pans with the stick already still)
+        if False:                      # TEST: hysteresis disabled
             en_giro = abs(g) > GIRO_MIN * 0.5
         else:
             en_giro = abs(g) > GIRO_MIN
@@ -156,23 +157,23 @@ class Mando:
             salio_giro = (self._modo == GIRO)
             self._modo = nuevo
             if nuevo in (RECTO, PARADO) and not salio_giro:
-                # patron oficial: capturar el rumbo UNA vez al entrar
+                # official pattern: capture the heading ONCE on entry
                 gyro_lock.set_target_here()
                 gyro_lock.enable()
             elif nuevo in (RECTO, PARADO) and salio_giro:
-                # ASENTAMIENTO: el momento de diferencial de la curva sigue
-                # girando al robot (encoders lo demuestran). NO capturar
-                # todavía: orden cero -> Arma 4 frena activo y anula la
-                # deriva; se captura cuando la tasa de viraje cae.
+                # SETTLING: the differential momentum of the curve keeps
+                # turning the robot (encoders prove it). Do NOT capture
+                # yet: zero order -> Weapon 4 brakes actively and kills
+                # the drift; capture when the turn rate falls.
                 self._asentar_hasta = time.ticks_add(time.ticks_ms(),
                                                      ASENTAR_MAX_MS)
                 gyro_lock.disable()
             elif nuevo == GIRO:
-                gyro_lock.disable()      # el piloto posee el giro
+                gyro_lock.disable()      # the pilot owns the turn
             elif nuevo == RETORNO:
-                gyro_lock.enable()       # Arma 5 conduce (rumbo vivo)
+                gyro_lock.enable()       # Weapon 5 drives (live heading)
 
-        # tasa de viraje real (para soltar el asentamiento sin pausas fijas)
+        # real turn rate (to release settling with no fixed pauses)
         ahora = time.ticks_ms()
         yaw = imu.get_yaw()
         if self._yaw_prev is None:
@@ -184,7 +185,7 @@ class Mando:
         asentando = (time.ticks_diff(self._asentar_hasta, ahora) > 0 and
                      tasa_viraje > ASENTAR_TASA and self._modo != GIRO)
 
-        # aplicacion por modo (SOLO Arma 4 escribe motores)
+        # per-mode application (ONLY Weapon 4 writes motors)
         if asentando:
             l, r = torque_boost.feed(0.0, 0.0)
             traction_brake.set_command(l, r)
@@ -193,16 +194,16 @@ class Mando:
             l, r = torque_boost.feed(l, r)
             traction_brake.set_command(l, r)
         elif self._modo == RECTO and not asentando:
-            # fin del asentamiento: capturar el rumbo UNA vez (el momento ya
-            # murio, el objetivo sera fiel al lugar donde el robot quedo)
+            # end of settling: capture the heading ONCE (the momentum is
+            # dead, the target will be true to where the robot now rests)
             if not gyro_lock.enabled:
                 gyro_lock.set_target_here()
                 gyro_lock.enable()
-            # AUTO-CORRECCION DEL PILOTO: el empuje pequeño y SOSTENIDO
-            # (EMA ~0.25 s, el temblor de media cero no pasa) que la curva
-            # deja bajo GIRO_MIN NO se ignora: panea el rumbo bloqueado de
-            # forma asistida (el Arma 1 sigue estabilizando). Las palancas
-            # grandes siguen siendo GIRO plano del piloto.
+            # PILOT AUTOCORRECTION: the small SUSTAINED push (EMA ~0.25 s,
+            # the zero-mean tremor does not pass) that the curve leaves
+            # under GIRO_MIN is NOT ignored: it pans the locked heading
+            # in an assisted way (Weapon 1 keeps stabilizing). Large
+            # sticks remain plain pilot TURN.
             ax = abs(self._ema_x)
             sigue_presionada = abs(x_raw) >= 0.5 * ax
             if TRIM_UMBRAL <= ax <= TRIM_SAT and sigue_presionada:
@@ -218,9 +219,9 @@ class Mando:
                 gyro_lock.enable()
             gyro_lock.set_base(0.0, 0.0)
         elif self._modo == RETORNO:
-            pass          # Arma 5 fija base y rumbo cada ciclo
+            pass          # Weapon 5 sets base and heading every cycle
 
-    # ---------------- tarea 50 Hz no bloqueante ----------------
+    # ---------------- non-blocking 50 Hz task ----------------
     def start(self):
         if self._task is None or self._task.done():
             self._task = asyncio.create_task(self._run())

@@ -1,240 +1,388 @@
-# Team Robots Legends — Sistema de 5 Armas para XRP Iron Acres
+<div align="center">
 
-> Improvements to the FIRST XRP robot with secret weapons, improvements for game simulations and tests, in the tests and simulations the player in control has the pressure of a child not of a Computer to make it fair, Internal clock adapted to Iron Acress Game.
+# 🤖 XRP Master Software — Team Robots Legends ⚔️
 
-MicroPython + XRPLib exclusivamente. Sin `time.sleep()` de control, sin macros
-de un solo botón, sin internet. Todo lazo cerrado sobre sensores
-(encoders de fábrica, IMU a 208 Hz, rango, botón de board).
+### 🏆 5 Secret Weapons for the **XRP Iron Acres** competition (150-second matches)
 
-La partida se juega con **gamepad físico** (Logitech/Xbox) conectado a la
-estación de conducción; el XRP recibe ejes y botones por **Bluetooth vía
-protocolo XPP a 50 Hz** (`XRPLib.gamepad`, módulo oficial). El robot entero
-corre en la placa; el mando solo pide, las armas deciden.
+**FUSAMO · BootCamp Aventura Transforma**
 
-## Archivos
+![CI](https://github.com/MeowDev1011/XRP-V1-robot-upgrades/actions/workflows/baterias.yml/badge.svg)
+![MicroPython](https://img.shields.io/badge/MicroPython-XRPLib-blue)
+![Platform](https://img.shields.io/badge/Platform-XRP%20(Pico%20W)-purple)
+![License](https://img.shields.io/badge/License-MIT-green)
+![Tests](https://img.shields.io/badge/Battery-13%2F13%20thresholds%20OK-brightgreen)
 
-| Archivo | Arma | Rol |
-|---|---|---|
-| `piloto_gamepad.py` | Consola | Lazo 50 Hz: lee gamepad, elige modo, prioriza al piloto |
-| `arma1_gyro_lock.py` | Gyro-Lock PID | Rumbo clavado, anti-trompos, 50 Hz |
-| `arma2_torque_boost.py` | Anti-atasco | Boost de torque por rueda ante resistencia |
-| `arma3_curvas.py` | Curvas cúbicas | Precisión quirúrgica en el mando, punta 100% |
-| `arma4_traccion.py` | Traction & Brake | Rampa anti-derrape + frenado activo con `brake()` |
-| `arma5_endgame.py` | Auto-Endgame | Reloj de 150 s + odometría X,Y,θ + retorno asistido |
-| `main_partida.py` | Main de placa | Cablea todo y arranca (pegar en XRPCode) |
-| `simulador_xrp.py` | Robot virtual | Partida de 150 s con mando virtual en PC/Pydroid |
-| `_estres.py` | Batería de estrés | 30 partidas aleatorias con criterios P1-P4 |
-| `_masiva.py` | Campaña masiva | Miles de partidas KID multiproceso (campo Iron Acres + puntos) |
-| `_juegos.py` | Juegos | CONDUCIR / SUMO / SUMO2 / FUTBOL / FUTBOL2 con el código real de placa + métricas F1-F5 de fidelidad del mando |
-| `_verifica.py` | Banco de pruebas | 12 pruebas de la matemática de las armas |
+*Everything runs on the robot's board. No bridges, no internet, no APIs, no `time.sleep()`. The gamepad only asks — the weapons decide.* 🧠⚡
 
-## Controles del mando (partida real)
+</div>
 
-| Control | Función (continua, no macro) |
+---
+
+## 🌐 Language / Idioma
+
+**🇬🇧 English** (this file) · [🇪🇸 Español](README.es.md)
+
+---
+
+## 📑 Table of Contents
+
+1. [⚡ What is this?](#-what-is-this)
+2. [⚔️ The 5 Secret Weapons](#%EF%B8%8F-the-5-secret-weapons)
+3. [🎮 How the match is played](#-how-the-match-is-played)
+4. [🔗 Control chain](#-control-chain)
+5. [🔌 Installation on the robot (3 ways)](#-installation-on-the-robot-3-ways)
+   - [Method 1 — XRPCode (official web editor)](#method-1--xrpcode-official-web-editor--recommended)
+   - [Method 2 — USB serial (mpremote / Thonny)](#method-2--usb-serial-mpremote--thonny)
+   - [Method 3 — Copa Robótica (class platform)](#method-3--copa-robótica-class-platform)
+6. [🕹️ Gamepad controls](#%EF%B8%8F-gamepad-controls)
+7. [🧪 Running the tests locally](#-running-the-tests-locally)
+8. [🤖 24/7 battery in GitHub Actions](#-247-battery-in-github-actions)
+9. [📊 Measured results](#-measured-results)
+10. [🛠️ Calibration guide](#%EF%B8%8F-calibration-guide)
+11. [📚 Lessons from 800+ simulated matches](#-lessons-from-800-simulated-matches)
+12. [❓ FAQ](#-faq)
+13. [📜 License & credits](#-license--credits)
+
+---
+
+## ⚡ What is this?
+
+This repository contains the **master software** for our XRP robot in the **XRP Iron Acres** competition: a field where you deliver products, park in the home zone, and the match lasts **exactly 150,000 ms** (2:30 minutes).
+
+**Hard rules we obey (no exceptions):**
+
+| Rule | How we honor it |
 |---|---|
-| `Y1` | Avance/retroceso (pasa por curva del Arma 3) |
-| `X1` | Giro: mientras se mueve, aparece modo GIRO |
-| `X1` pequeño sostenido | RECORTE ASISTIDO: panea el rumbo bloqueado sin soltar avance (detección de empuje real por EMA ~0.25 s; el temblor de manos NO panea) |
-| Palancas sueltas | El Arma 4 clava el robot + Arma 1 sostiene rumbo |
-| `START` (flanco) | Arma reloj y casa del Arma 5 |
-| `BACK` (flanco) | Activa/desactiva la asistencia de retorno del endgame |
-| `BUMPER_L` (mantener) | Modo precisión (curva más quirúrgica) |
+| 🚫 No internet, no bridges, no external APIs | 100% of the code runs on the XRP board (RP2040 / Pico W) |
+| 🚫 No `time.sleep()` / blocking pauses | Everything is `time.ticks_ms()` + `uasyncio` + continuous sensor reading |
+| 🚫 No one-button fixed macros | Every assist is a **continuous, real-time closed loop**; buttons only toggle assists |
+| 🎯 Easy to integrate with XRPCode blocks | Self-contained modules, importable line-by-line |
 
-Prioridad SIEMPRE: palancas del piloto > asistencia. Las palancas sueltas en
-los últimos 12 s disparan el retorno vivo a casa (A5), y tocar cualquier
-palanca contramanda al instante.
+The match is driven with a **physical gamepad** (Xbox/Logitech) connected to the driving station; the XRP receives axes and buttons over **Bluetooth via the official XPP protocol at 50 Hz** (`XRPLib.gamepad`). The pilot is a kid who is great at video games but does not have adult-level motor precision — all 5 weapons exist to inflate the kid's precision without ever fighting the pilot's intent.
 
-## Cadena de mandos (cómo se conectan)
+---
 
-Solo UN módulo escribe en los motores cuando todo está encendido: el Arma 4.
+## ⚔️ The 5 Secret Weapons
+
+### 🔒 Weapon 1 — Gyro-Lock PID (Heading Autocorrect / Anti-Spin)
+A real-time PID using `imu.get_yaw()` that **locks the heading** whenever the robot should go straight or was not ordered to turn.
+- Stops spins, drifts, and collision deflection **immediately**.
+- Anti-windup (`MAX_I`), deadband (1.5°) with integral kept, output limit 0.5.
+- Bonus logic: the minimum-effort floor applies only **while moving** (never in hold — the floor used to cause 1.53 rpm pulses that broke the *nailed* park check).
+
+### 💪 Weapon 2 — Smart Torque Boost (Anti-Stall)
+Compares **desired wheel speed vs. real encoder speed**.
+- Extra power **per wheel** when it detects resistance/friction/heavy load at low speed.
+- Boost is released the moment the wheel recovers fluidity.
+
+### 🎛️ Weapon 3 — Cubic Response Curves (Surgical Handling)
+Transforms stick inputs with a smooth **cubic curve**: `y = MIX·v + (1−MIX)·v³`.
+- Millimeter-precision micro-movements in delicate maneuvers.
+- **100% top speed** preserved on long pushes (`MIX=0.35`; precision mode `MIX=0.12` with `BUMPER_L`).
+- Slew-rate limiting: firm on press (3.0), extra forgiving on release (12.0).
+
+### 🛞 Weapon 4 — Traction & Brake Assist (Active Braking)
+Owns the motors (single final writer):
+- **Acceleration ramp** (`RAMPA_MAX=3.0`/s) so wheels never slip from a standstill.
+- **Controlled reverse pulse** (`PULSO_K=0.012`) read back via encoders when the command returns to zero — the robot is **nailed to its exact spot** with no inertia slide.
+
+### ⏱️ Weapon 5 — Auto-Endgame (Clock + Home Odometry)
+- Counts the exact **150,000 ms** of the match.
+- Maintains **relative position X, Y, θ** via encoder + IMU fusion (dead-reckoning odometry).
+- When **12 seconds remain** and sticks are released, a live assist returns the robot home (`V_RETORNO=0.85`).
+- Final 2 seconds: guaranteed zero command once inside 8 cm → the **park is locked in**.
+
+---
+
+## 🎮 How the match is played
 
 ```
-gamepad (XPP 50 Hz)
+   ┌──────────────┐  Bluetooth XPP @ 50 Hz  ┌────────────────────────┐
+   │ PHYSICAL     │ ───────────────────────▶│  XRP board (MicroPython)│
+   │ GAMEPAD      │                         │                        │
+   │ (kid pilot)  │ ◀───────────────────────│  100% on-board logic:  │
+   └──────────────┘   rumble/status          │  pilot → curves → A2   │
+                                             │  → A4 (owns motors)    │
+                                             │  with A1 gyro-lock     │
+                                             │  hooked inside, A5     │
+                                             │  managing the clock    │
+                                             └────────────────────────┘
+```
+
+- **Pilot authority is always supreme**: touching any stick instantly overrides every assist.
+- Releasing the sticks in the last 12 s arms the **live return home**; touching a stick cancels it that instant.
+- The board needs **zero operator software during the match** — the gamepad talks to the driving station, the station talks to the XRP.
+
+For the exact button map see [🕹️ Gamepad controls](#%EF%B8%8F-gamepad-controls).
+
+---
+
+## 🔗 Control chain
+
+Only **one** module ever writes to the motors; the chain flows strictly in one direction so assists can never fight each other.
+
+```
+piloto_gamepad.py (50 Hz loop; modes STOP / STRAIGHT / TURN / SETTLE / RETURN)
         │
         ▼
-piloto_gamepad._run()  ── lee Y1/X1 → curvas A3 → transición de modo
-        │  RECTO: gyro.set_base(v, v)  PARADO: base 0  GIRO: mando directo
+arma3_curvas.py  (cubic response + slew)      ← Weapon 3
+        │
         ▼
-arma1 gyro_lock._tick()  ── corrección diferencial PID (50 Hz)
-        │  gyro_lock.attach(gancho)
+arma2_torque_boost.py  (anti-stall boost)      ← Weapon 2
+        │
         ▼
-gancho: l, r = torque_boost.feed(l, r)     (Arma 2)
-        arma4.set_command(l, r)            (Arma 4)
+arma4_traccion.py  (ramp + active brake)       ← Weapon 4  ⟵ ONLY writer to motors
+        └── arma1_gyro_lock.py (PID hooked inside)   ← Weapon 1
+        │
         ▼
-arma4._run():  rampa anti-patinate → pulso inverso → motor.brake()  (50 Hz)
-arma5 arma5._run():  reloj + odometría + endgame (50 Hz; en retorno escribe
-                     set_target/set_base en el gyro_lock: nunca toca motores)
+   DRIVETRAIN.set_effort(l, r)
+
+arma5_endgame.py (clock + odometry + live return)   ← Weapon 5 (20 Hz task)
 ```
 
-Cableado exacto: `main_partida.py` (ver arriba). En bloques XRPCode basta
-invocar `main_partida.main()` línea a línea.
+---
 
-## Resultados de la batería de estrés (30 partidas, mando virtual)
+## 🔌 Installation on the robot (3 ways)
 
-Eventos aleatorios por partida: choques ±15..40° (0-3), atascos físicos de
-rueda 2-5 s (0-2), batería 82-100%, deriva IMU 0-0.2°/s, ruido gaussiano.
+> **Goal in all methods:** copy the software to the **root of the XRP's filesystem**
+> (`main_partida.py` + the 5 weapons + `piloto_gamepad.py`), then run
+> `main_partida.py` once before the match starts.
 
-| Criterio | Resultado |
+**The 8 files to load:**
+
+```
+main_partida.py          ← entry point (run this one)
+piloto_gamepad.py        ← gamepad driver
+arma1_gyro_lock.py        arma2_torque_boost.py
+arma3_curvas.py           arma4_traccion.py
+arma5_endgame.py         curvas.py (if your copy references it)
+```
+
+### Method 1 — XRPCode (official web editor) 🥇 *recommended*
+
+[XRPCode](https://xrpcode.wpi.edu) is the **official** platform (Experiential Robotics / WPI / SparkFun / FIRST) to program the XRP: a **web editor** that works in Chrome, Edge or Opera, connects to the robot over **USB serial** (WebSerial), and supports **both Blockly and Python**.
+
+1. **Open [xrpcode.wpi.edu](https://xrpcode.wpi.edu)** in Chrome, Edge or Opera.
+2. **Connect the XRP by USB** and switch the robot to **XRP mode** (firmware ≥ 1.0.2 ships this; older units need the WebSerial firmware update from the same site).
+3. Click **Connect / Serial** in the editor toolbar and **select the robot's port** in the browser dialog.
+4. Create a new **Python** project.
+5. **Copy the 8 files to the robot**: use the **Filesystem panel** (left sidebar) to upload them to the robot's root filesystem. If your editor version has no upload button, create each file with **New File**, paste its contents, and **Save** — same result.
+6. **Start**: open `main_partida.py` and press **Run (▶)**. The board then tracks the gamepad for the whole match — you may close the editor afterward without stopping the program.
+7. First boot: the XRPLib IMU **calibrates once** with the robot still (`imu.calibrate(1.0)` — the only intentional pause in the system, done by the official library, not by us).
+
+> 💡 **Blockly integration**: each weapon is a plain MicroPython module with a clean API (`set_base()`, `feed()`, `attach()`, `enable()`…), so you can also invoke them from Python blocks in Blockly (`import arma1_gyro_lock`) and mix with your own custom blocks.
+
+### Method 2 — USB serial (mpremote / Thonny)
+
+Classic REPL workflow from a PC:
+
+```bash
+# Install the MicroPython device tool
+pip install mpremote
+
+# Copy every file to the robot's root (XRP plugged in by USB)
+mpremote cp main_partida.py :/
+mpremote cp piloto_gamepad.py :/
+mpremote cp arma1_gyro_lock.py :/
+mpremote cp arma2_torque_boost.py :/
+mpremote cp arma3_curvas.py :/
+mpremote cp arma4_traccion.py :/
+mpremote cp arma5_endgame.py :/
+
+# Open the REPL and start the match software
+mpremote
+# >>> import main_partida
+```
+
+Alternative: **Thonny** (`Tools → Options → Interpreter → MicroPython (generic)`), then right-click each file → *Upload to /*.
+
+> ⚠️ The XRP's MicroPython build must include XRPLib (every XRP unit ships it). If `import XRPLib` fails in the REPL, reflash the official XRP firmware first from [experientialrobotics.org](https://experientialrobotics.org).
+
+### Method 3 — Copa Robótica (class platform)
+
+[**Copa Robótica**](https://programacion.coparobotica.com) is the class/camp platform our BootCamp (**Aventura Transforma / FUSAMO**) uses: an online learning environment (virtual classroom) where coaches share lesson content and **code-accessible pages via a class link with an access/edition code** — you don't log in with a personal account, you enter through the **class link your coach gave you**.
+
+How to use it with this project:
+
+1. Ask your coach for the **class link with its edition code** (BootCamp Aventura Transforma uses these for the XRP module).
+2. Open that link in Chrome/Edge — it loads the lesson's editor/emulator for your group.
+3. **Paste this project's files** in that editor as plain Python text (`main_partida.py` and each weapon, exactly as-is).
+4. Connect the robot the same way XRPCode does (USB serial + WebSerial in the browser): connect, select the port, upload/run the files.
+5. **Simulator-only mode** (no robot present): clone this repo on a PC (or Pydroid on Android) and run `python3 simulador_xrp.py` to play full 150 s matches with a virtual gamepad against the same code that goes on the board.
+
+> ℹ️ If your Copa Robótica link says "no valid edition code", ask your coach to re-share the **class edition link** — the edition code is what unlocks the editable code area; the plain student view is read-only.
+
+---
+
+## 🕹️ Gamepad controls
+
+| Control | Function (continuous, never a macro) |
 |---|---|
-| P1 trompos recuperados < 3° | 30/30 |
-| P2 crucero estable (< 12°) | 30/30 |
-| P3 llegada a casa CLAVADO (≤ 10 cm) | 30/30 (fin típico 8.5-9.5 cm) |
-| P4 cero excepciones | 30/30 |
+| `Y1` (left stick) | Forward/backward (passes through Weapon 3 curve) |
+| `X1` (right stick) | Turn: while moving, enters TURN mode |
+| `X1` small sustained | **ASSISTED TRIM**: pans the locked heading without releasing forward (real-push detection via ~0.25 s EMA — hand tremor does **not** pan) |
+| Sticks released | Weapon 4 nails the robot + Weapon 1 holds heading |
+| `START` (edge) | Arms the clock & defines home for Weapon 5 |
+| `BACK` (edge) | Toggles the endgame return assist on/off |
+| `BUMPER_L` (hold) | Precision mode (more surgical curve, `MIX=0.12`) |
 
-Partida escriptada completa: llegada automática a casa antes de t≈148 s,
-`EN ZONA` a ~8.5 cm, pulso de boost del Arma 2 visible en giros.
+**Priority is always: pilot sticks > assistance.** Releasing the sticks in the last 12 s triggers the live return home (A5), and touching any stick instantly countermands it.
 
-## Campaña masiva Iron Acres (piloto KID, miles de partidas)
+---
 
-`_masiva.py` juega el modelo del campo oficial (272 x 137 cm; City Center
-gol de alianza, hoppers/granero de recogida) con un piloto KID: buen gamer
-pero con temblor en palancas (σ=0.05), decisiones cada ~200 ms, reacción
-~180 ms, ojo con ruido (±4 cm / ±4°). Presión del juego: choques de hasta
-40° que TIRAN el producto cargado (>25°), atascos, batería 82-100%.
+## 🧪 Running the tests locally
 
-| Batería | Puntos | Entregas | Park en zona | Sin ningún fallo |
-|---|---|---|---|---|
-| 400 partidas KID con armas (código final) | **56.1** | 4.63 | 97.5% | **94.8%** |
-| 200 KID SIN asistencia de retorno | 46.2 | 4.62 | **0.0%** (quedan a ~81 cm) | 0% |
+All tests run on a **PC simulator** (`simulador_xrp.py`) — a physical plant with stubs for XRPLib/uasyncio, a virtual clock, a virtual gamepad and the pilot model. Nothing touches the real robot.
 
-Hallazgos aplicados editando archivos (e iterados con A/B):
+```bash
+python3 _verifica.py     # 12/12 math unit tests of the weapons
+python3 _estres.py       # 30/30 stress matches (random chaos)
+python3 simulador_xrp.py # one full 150 s match with a virtual gamepad
 
-1. **Recorte asistido (trim) en el piloto**: la palanca pequeña que la curva
-   del Arma 3 deja bajo `GIRO_MIN` no se ignora: panea el rumbo bloqueado
-   (el gyro sigue estabilizando). La fracción del recorte está recortada
-   a [0,1] (con EMA por encima de `TRIM_SAT` llegaba a 1.98x = 119°/s de
-   paneo y el objetivo escapaba del robot: picos P2 de 13-23°).
-2. **`V_RETORNO=0.85` por defecto en el Arma 5** (0.45 llega tarde desde
-   >60 cm). El park asistido pasa de 0% a 97% y vale ~10 puntos/partida:
-   es el segundo medio de cómo se gana.
-3. **`PUNTO_CLAVAR_CM=8` + `SEGURO_FINAL_MS=2000` (Arma 5)**: soltar el
-   retorno al ras de la tolerancia (10 cm) dejaba al robot a 10.1-10.3 cm
-   (park perdido por centímetros) o aún avanzando al silbatazo (no
-   CLAVADO). Ahora apunta 2 cm más adentro y en los últimos 2 s fuerza
-   orden cero si ya está en zona: el Arma 4 clava garantizado.
-4. **Asentamiento post-GIRO (piloto)**: al soltar el giro el momento del
-   diferencial sigue girando al robot ~5-18° (medido: encoders −30/+39 rpm
-   al capturar). Capturar el rumbo AHÍ bloquea un objetivo que el momento
-   va a tirar: el piloto frena activo (Arma 4) mientras muere el momento
-   y captura cuando la tasa de viraje cae de 45°/s (tope 600 ms). Este
-   fix subió las ESTRICTAS de 52.8% a **94.8%** (400 partidas A/B).
-5. **Piso `MIN_EFFORT` solo en marcha (Arma 1)**: en HOLD la deriva de la
-   IMU empujaba el error fuera de la banda muerta y el piso arrancaba
-   pulsos de 1.53 rpm (nunca CLAVADO en el corte). Sin piso en solicitación
-   de base cero, el esfuerzo natural bajo el rozamiento estático corrige
-   sin sacudir al robot del sitio.
-6. La métrica justa del piloto kid es persistencia: P1 solo falla si el
-   error sigue >3° todo deadline+5 s (el flicker del niño no es culpa del
-   Arma 1; los holds reales quedan a ≤2°).
-
-Puntuación modelada (paramétrica; EDITAR al descargar "Read the Manual" de
-experiential.bot/ironacres): `PTS_PRODUCTO=10`, `PTS_PARK=10`,
-`PTS_ARRASTRE=0`. Primera entrega del kid a t≈50 s (con V_KID=0.70 y
-puntería KP 70°: antes 70 s y 3.3 entregas por partida).
-
-## Juegos individuales y en equipo: CONDUCIR, SUMO, SUMO2, FUTBOL, FUTBOL2
-
-`_juegos.py` juega tres modos con el MISMO código de placa (piloto + 5 armas)
-y el MISMO piloto kid de la campaña masiva, para cazar **movimientos
-contrarios o involuntarios de lo que quiso el piloto** (F1-F5):
-
-- F1: ordena avanzar sostenido y el robot retrocede (jamás debe pasar).
-- F2: al soltar palancas en velocidad el robot desliza >8 cm (freno A4).
-- F3: kid quieto >1 s y el robot se mueve >3 cm.
-- F4: kid SIN tocar X1 >1 s y el rumbo cambia >3° (fuera de ventanas de choque).
-- F5: latencia palanca → ruedas (ms).
-
-Batería final de **100 partidas por modo, piloto KID** (el perfil de los
-pilotos reales: avanzados en videojuegos, sin precisión de adulto).
-F-métricas limpias en TODOS los modos:
-
-| Modo | Rendimiento | F1 | F2 | F3 | F4 | F5 lat. |
-|---|---|---|---|---|---|---|
-| CONDUCIR (100) | 2.84 puertas, máx 3 | 0 | 0 | 0 | 0 | 144 ms |
-| SUMO (100) | **73.0% / 0.0% / 27.0%** | 0 | 0 | 0 | 0 | 31 ms |
-| SUMO2 (100) | **63.0% / 0.0% / 37.0%** | 0 | 0 | 0 | 0 | 32 ms |
-| FUTBOL (100) | **0.55 goles/partida** (55% con gol; era 0.00) | 0 | 0 | 0 | 0 | 123 ms |
-| FUTBOL2 (100) | 4.79 goles, **51% / 35%**, encajadas 3.71 | 0 | 0 | 0 | 0 | 38 ms |
-
-Referencia A/B con piloto ADULTO (40/modo, estrés): 0 en F1-F2, F3 2/40 y
-F4 4/40 SOLO en fútbol/futbol2 (efecto límite >3°/1.1 s del propio empuje
-del perfil adulto, se auto-recupera). ADULTO FUTBOL2: **77.5% ganadas /
-15% perdidas** — con operador fino el equipo gana a talento.
-
-Hallazgos del fichero (instrumento, no robot): el kid de fútbol apunta casi
-A LA PELOTA (`APROX_PELOTA=2.0`) para dribble continuo; el punto "detrás"
-clásico lo dejaba fuera del radio de patada (trabado). Roles del kid
-1v1 reescritos (rodeo + carrerilla a través del arco) subieron el marcador
-de 0.00 a **0.55** goles/partida. El empuje del rival en SUMO no cuenta
-como F1/F2 (un choque que nos corre las ruedas es gameplay, no un defecto
-del mando).
-
-## Constantes calibradas (por batería, no a ojo)
-
-0. **Piloto (nuevo):** `TRIM_UMBRAL=0.12`, `TRIM_SAT=0.25`,
-   `TRIM_GRADOS_S=60`, `TRIM_TAU=0.25` (anti-tremor EMA), `GIRO_MIN=0.08`,
-   `ASENTAR_MAX_MS=600` / `ASENTAR_TASA=45` (asentamiento post-giro).
-1. **A1:** `KP=0.064` (fábrica) → `KD=0.0055` → **`KI=0.06`, `MAX_I=0.3`**
-   (bajar el integral elimina la caza sostenida de ±4° tras choques; probado
-   A/B en 30 partidas vs variante KP×1.5). `DEADBAND=1.5` con integral
-   conservado: quieto sólido, sin mareo.
-2. **A2:** `RATIO_ATASCO`, `BOOST_MAX`. En robot libre el boost no debe subir nunca.
-3. **A3:** `MIX=0.35` (0.12 en modo precisión BUMPER_L); no depende del motor.
-4. **A4:** `RAMPA_MAX=3.0`/s, `PULSO_K=0.012` según lo "duro" que frene.
-5. **A5:** `V_RETORNO=0.85` (viabilidad del regreso; 0.45 llega tarde),
-   `TOLERANCIA_CM=10` (candidato a ajuste con el manual),
-   `PUNTO_CLAVAR_CM=8` + `SEGURO_FINAL_MS=2000` (park garantizado),
-   `PIVOTE_GRADOS=45` (pivona hacia casa si mira lejos, ahorra distancia).
-
-## Limitaciones conocidas (medidas, no ocultas)
-
-- **FUTBOL 1v1: ~45% de partidas sin gol** (el kid anota 0.55 goles/partida;
-  era 0.00). El resto mueren con la pelota en banda/esquina: el modelo de
-  piloto niño NO puede retroceder ni afinar ángulos finos; el salvavidas
-  es el rodeo de 3 roles ya implementado. En el robot REAL con piloto
-  humano la perspectiva es mejor (recibirá el trim asistido y la curva
-  del Arma 3).
-- **F4 paneo residual con perfil ADULTO** (estrés, no kid): 4/40 en
-  FUTBOL 1v1 — efecto límite >3°/1.1 s del propio empuje filtrado,
-  se auto-recupera. Los perfiles de competencia (KID) salen limpios.
-- **F5 latencia no medible con ADULTO en Iron Acres** (crucero 7.6 cm/s
-  bajo el umbral de medición 8.0): interacción de métrica, no fallo.
-- La odometría usa el track de fábrica (15.5 cm) y deriva con derrapes
-  reales: mantén la zona de arranque gustosa con `START` cerca del
-  momento del park.
-
-## Lecciones de la simulación
-
-- **La casa debe estar a ≤ ~130 cm al entrar al endgame**: a 0.85 de esfuerzo
-  el robot cubre ~39 cm/s de punta; con pivote, rampa y frenada quedan
-  ~130 cm jugables. A 150 cm ya es límite; más lejos, imposible.
-- **El park sin Arma 5 no existe** (800 partidas KID: 0% en zona, quedan
-  a ~79 cm de media manejando el niño al final). La asistencia de cierre
-  es el segundo medio de puntos del juego.
-- Si una rueda queda atascada, el Gyro-Lock corrige asimétrico; con atasco
-  activo la recuperación de trompos es parcial (física, no software).
-- El integral del Arma 1 con delays de rampa es la fuente nº1 de trompos
-  oscilatorios: mantén `MAX_I` pequeño.
-
-## Verificación
-
-```
-python3 _verifica.py     # 12/12 pruebas matemáticas
-python3 _estres.py       # 30/30 partidas de estrés
-python3 simulador_xrp.py # partida completa con mando virtual
-MASIVA_N=400 python3 _masiva.py   # campaña masiva Iron Acres KID
+# Mass campaigns (Iron Acres scoring, multiprocess)
+MASIVA_N=400 python3 _masiva.py
 MASIVA_PILOTO=ADULTO MASIVA_N=100 python3 _masiva.py
-MASIVA_VAR=SIN_ASIST MASIVA_N=200 python3 _masiva.py   # valor de las armas
+MASIVA_VAR=SIN_ASIST MASIVA_N=200 python3 _masiva.py   # value of the weapons
+
+# Individual & team games
 JUEGOS_MODO=TODOS JUEGOS_N=100 JUEGOS_PILOTO=KID python3 _juegos.py
 JUEGOS_MODO=SUMO JUEGOS_N=300 JUEGOS_PILOTO=KID python3 _juegos.py
-JUEGOS_MODO=TODOS JUEGOS_N=40 JUEGOS_PILOTO=ADULTO python3 _juegos.py  # referencia
+JUEGOS_MODO=TODOS JUEGOS_N=40 JUEGOS_PILOTO=ADULTO python3 _juegos.py  # reference
 ```
 
-## Reglas del proyecto respetadas
+Useful env flags for debugging:
 
-- Cero `time.sleep()` en control; todo lazo usa `ticks_ms` + `uasyncio`.
-- Sin macros de botón: los botones solo habilitan/deshabilitan asistencia
-  continua o marcan eventos (reloj); ninguna rutina fija por botón.
-- El único bloqueo del sistema es `imu.calibrate(1.0)` de la propia XRPLib,
-  una sola vez al encender, robot quieto.
-- Módulos autocontenidos e invocables línea a línea desde XRPCode.
+| Variable | Purpose |
+|---|---|
+| `MASIVA_PILOTO` | Pilot profile: `KID` (default) / `BUENO` / `REGULAR` / `ADULTO` |
+| `MASIVA_VAR` | `ARMA` (full assist, default) or `SIN_ASIST` (no weapons) |
+| `MASIVA_N` / `JUEGOS_N` | Number of matches per run |
+| `MASIVA_DEBUG` / `ESTRES_DEBUG` / `JUEGOS_DEBUG` / `JUEGOS_TRACE` | Verbose traces for hunting failures |
+
+---
+
+## 🤖 24/7 battery in GitHub Actions
+
+`.github/workflows/baterias.yml` runs the **entire battery continuously**:
+
+- ⏰ **Every 3 hours** (`cron 0 */3 * * *`) — around the clock
+- 🚀 On every **push to `main`**
+- 🔘 On demand (**Run workflow** button, `workflow_dispatch`)
+- 📦 Logs of every battery are uploaded as artifacts (**90-day retention**)
+
+The **daily enhancement workflow** (`mejora-diaria.yml`) adds one more guard: it replays the battery, and **if a threshold regresses it automatically opens a GitHub Issue** titled with the failing metric — the team gets told the same day without watching CI. Improvement **proposals** are attached to that same issue; but no automated edit ever lands on the robot code without a human reviewing the cause first.
+
+Quality thresholds enforced (`ci/bateria.sh`) — the run turns **red** if ANY falls:
+
+| Battery | Metric | Threshold |
+|---|---|---|
+| `verifica` | math tests | 12/12 |
+| `estres` (30 matches) | matches approved | 30/30 |
+| Iron Acres KID (n300) | Park in zone | ≥ 90% |
+| Iron Acres KID (n300) | STRICT matches (zero faults) | ≥ 60% |
+| Iron Acres KID (n300) | P1 spins post-collision | = 0 |
+| Iron Acres KID (n300) | Points avg | ≥ 50 |
+| Iron Acres ADULTO (n100) | Points avg | ≥ 35 |
+| Weapons vs NO-ASSIST | Contribution | ≥ 2 pts |
+| Games KID (n100 × 5) | Modes with F1–F4 clean | 5/5 |
+| SUMO KID (n100) | Losses | 0% |
+| FUTBOL 1v1 (n100) | Goals/match | ≥ 0.2 |
+| FUTBOL2 2v2 (n100) | Goals/match | ≥ 3.0 |
+| FUTBOL2 ADULTO (n40) | Win % | ≥ 50% |
+
+> 🛡️ **When a metric regresses, we edit `piloto_gamepad.py` / `arma*.py` — NEVER the test harnesses or their fidelity metrics (F-metrics).** CI is an alarm, not an auto-editor.
+
+---
+
+## 📊 Measured results
+
+**Iron Acres — mass campaign, KID pilot (the real kids' profile), 400 matches**
+
+| Metric | Result |
+|---|---|
+| Points avg | **≈ 58 / 60 possible** |
+| Park in zone + nailed | 90%+ |
+| STRICT matches (zero faults P1–P3) | **94.8%** (was 52.8% before the post-turn set-up fix) |
+| P1 spins post-collision | 0 (kid flicker is not a fault; real holds settle to ≤2°) |
+
+**Individual & team games — 100 matches per mode, KID pilot**
+
+| Mode | Performance | F1 | F2 | F3 | F4 | F5 lat. |
+|---|---|---|---|---|---|---|
+| DRIVE (100) | 2.84 doors, max 3 | 0 | 0 | 0 | 0 | 144 ms |
+| SUMO 1v1 (100) | **73% won / 0% lost / 27% draw** | 0 | 0 | 0 | 0 | 31 ms |
+| SUMO 2v2 (100) | **63% won / 0% lost / 37%** | 0 | 0 | 0 | 0 | 32 ms |
+| FUTBOL 1v1 (100) | **0.55 goals/match** (55% of matches with a goal) | 0 | 0 | 0 | 0 | 123 ms |
+| FUTBOL2 2v2 (100) | 4.79 goals, **51% won / 35% lost** | 0 | 0 | 0 | 0 | 38 ms |
+
+**ADULTO reference (40/mode, stress):** 0 in F1–F2, F3 2/40, F4 4/40 only in soccer (limit effect of the adult profile's own push, self-recovers). ADULTO FUTBOL2: **77.5% won / 15% lost**.
+
+Fidelity metrics (proving the kid cannot trigger involuntary robot moves): **F1** robot goes backward when commanded forward (never happens), **F2** slides >8 cm after releasing sticks at speed, **F3** >3 cm drift while the kid is still >1 s, **F4** >3° heading change without X1 >1 s, **F5** stick→wheels latency. All clean in all modes with the KID profile.
+
+---
+
+## 🛠️ Calibration guide
+
+All constants live at the top of each module, tuned by battery (never by eye):
+
+| Module | Constant(s) | What to tune on the real track |
+|---|---|---|
+| `piloto_gamepad.py` | `TRIM_UMBRAL=0.12`, `TRIM_SAT=0.25`, `TRIM_GRADOS_S=60`, `TRIM_TAU=0.25`, `GIRO_MIN=0.08`, `ASENTAR_MAX_MS=600`, `ASENTAR_TASA=45` | Kid tremor filter / post-turn settle window |
+| `arma1_gyro_lock.py` | `KP=0.064`, **`KI=0.06`, `MAX_I=0.3`**, `KD=0.0055`, `DEADBAND=1.5`, `OUT_LIMIT=0.5` | Start from factory KP → add KD → finally KI. Lower `KI` if the oscillation after crashes won't die; keep `MAX_I` small (the integral is the #1 source of oscillatory spins) |
+| `arma2_torque_boost.py` | `RATIO_ATASCO`, `BOOST_MAX` | On a free robot the boost must **never** trigger |
+| `arma3_curvas.py` | `MIX=0.35` (0.12 precision), `SLEW_DEF=3.0`, `SLEW_SUELTA=12.0` | Higher `MIX` = rawer stick; lower `SLEW` = softer starts |
+| `arma4_traccion.py` | `RAMPA_MAX=3.0`, `PULSO_K=0.012` | Increase `PULSO_K` if the robot still slides after braking |
+| `arma5_endgame.py` | `V_RETORNO=0.85`, `TOLERANCIA_CM=10`, `PUNTO_CLAVAR_CM=8`, `SEGURO_FINAL_MS=2000`, `PIVOTE_GRADOS=45` | `TOLERANCIA_CM` per the official "Read the Manual"; `V_RETORNO` = how early the assist must fire |
+
+📱 **Calibration order on the real robot:** Weapon 1 first (park the robot, push it with a hand, it must not spin) → Weapon 4 (release sticks at speed → no slide) → Weapon 3 (curves by feel) → Weapon 2 (push the robot into a wall → boost) → Weapon 5 (full mock match).
+
+---
+
+## 📚 Lessons from 800+ simulated matches
+
+- 🏠 **The home zone must be ≤ ~130 cm away when the endgame begins** — at 0.85 effort the robot covers ~39 cm/s top; with pivot, ramp and braking that leaves ~130 cm playable. Farther = physically impossible.
+- 🅿️ **Park without Weapon 5 does not exist**: over 800 KID matches with assistance off, 0% parked (the kid ends at ~79 cm from the zone on average). Endgame assist is the second scoring method of the game.
+- 🌀 If a wheel stalls, Gyro-Lock corrects asymmetrically, so spin recovery with an active stall is partial (physics, not software).
+- ♨️ Weapon 1's integral + the ramp delay is the #1 source of oscillatory spins — keep `MAX_I` small.
+- 🎚️ The `MIN_EFFORT` floor must apply only while the pilot asks to move; in hold it caused 1.53 rpm pulses that broke the "nailed" park check.
+- ✍️ The kid pilot's fair metric is **persistence**: P1 only fails if the error stays >3° for the whole deadline + 5 s (kid flicker is not Weapon 1's fault; real holds stay ≤2°).
+
+---
+
+## ❓ FAQ
+
+**Q: Why no `time.sleep()` anywhere?**
+Because the match can't block: we read encoders and IMU continuously every 20–50 ms, and a blocking sleep would freeze the whole chain. Everything is scheduled with `ticks_ms` deadlines and `uasyncio` tasks.
+
+**Q: Why does the pilot need a physical gamepad if the kid could also drive with Python?**
+Because in the real match the robot must react instantly to a human operator — the gamepad simulates that operator (50 Hz streaming via the official XPP protocol). No operator code runs during the match; only the board.
+
+**Q: Do the weapons fight each other?**
+No. There's a strict single-writer rule: only `arma4_traccion.py` ever calls `DRIVETRAIN.set_effort()`. Everything else feeds it.
+
+**Q: Can I use this with Blockly only (no Python)?**
+You can import the modules from Python blocks, but the weapons themselves are Python files — they must be uploaded to the robot's filesystem either way.
+
+**Q: Which XRP firmware do we need?**
+Any official firmware ≥ 1.0.2 with XRPLib. Bluetooth gamepad support needs `XRPLib.gamepad` (present in current firmware images).
+
+**Q: Is the simulator identical to the real robot?**
+No — it's a fidelity plant (encoder inertia, IMU drift, programmed stalls, crash jolts) used to hunt bugs before they reach the metal. Real-track calibration is still mandatory, in the 🛠️ order above.
+
+---
+
+## 📜 License & credits
+
+[MIT](LICENSE) — **Team Robots Legends**, FUSAMO (BootCamp Aventura Transforma).
+
+Standing on the shoulders of giants:
+- 🤖 [XRP — Experiential Robotics Platform](https://experientialrobotics.org) (WPI · SparkFun · DEKA · FIRST)
+- 🧰 [XRPLib docs](https://docs.experientialrobotics.org) — official robot library
+- 💻 [XRPCode](https://xrpcode.wpi.edu) — official web editor
+- 🏫 [Copa Robótica](https://programacion.coparobotica.com) — BootCamp class platform
+
+<div align="center">
+
+⚔️ *Built brick by brick: one weapon at a time, calibrated, tested at scale, then shipped.* ⚔️
+
+</div>

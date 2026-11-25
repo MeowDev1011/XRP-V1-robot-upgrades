@@ -1,0 +1,65 @@
+# =========================================================
+# DAILY IMPROVEMENT RUN — Team Robots Legends (FUSAMO)
+# Once a day it replays the battery with EXTRA matches
+# (bigger campaign sample = statistically stronger read).
+# If any threshold regresses it automatically opens a GitHub
+# Issue so the team hears about it the same day.
+#
+# NOTE: this workflow NEVER edits robot code on its own. It
+# only raises the alarm; humans review and then edit
+# piloto_gamepad.py / arma*.py (never the test harnesses).
+# =========================================================
+name: daily-improvement
+
+on:
+  schedule:
+    - cron: "30 5 * * *"      # once a day, 05:30 UTC
+  workflow_dispatch: {}       # "Run workflow" button
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  daily:
+    name: Daily mass battery (n400 Iron Acres + n150 games)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Play the expanded battery
+        id: battery
+        run: |
+          export BATERIA_LOGS="$RUNNER_TEMP/logs"
+          mkdir -p "$BATERIA_LOGS"
+          bash ci/bateria.sh | tee "$BATERIA_LOGS/output.txt"
+          cat /tmp/summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Open an issue when a threshold regresses
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "## Regressed metric in the daily battery"
+            echo ""
+            echo "Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            echo ""
+            cat /tmp/summary.md 2>/dev/null || echo "(summary not available)"
+            echo ""
+            echo "Review the artifacts, find the root cause, and edit"
+            echo "piloto_gamepad.py / arma*.py (NEVER the tests or F-metrics)."
+          } > /tmp/issue.md
+          gh issue create \
+            --repo "${{ github.repository }}" \
+            --title "Daily battery regressed: review failing metric (auto)" \
+            --body-file /tmp/issue.md
+
+      - name: Save battery logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-battery-logs
+          path: ${{ runner.temp }}/logs
+          retention-days: 90

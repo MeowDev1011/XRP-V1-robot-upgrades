@@ -1,42 +1,42 @@
 # =========================================================
-# ARMA 1: AUTOCORRECTOR DE RUMBO Y ANTI-TROMPOS (Gyro-Lock PID)
+# WEAPON 1: HEADING AUTOCORRECTOR & ANTI-SPIN (Gyro-Lock PID)
 # Team Robots Legends - FUSAMO - XRP Iron Acres
 # ---------------------------------------------------------
-# Lazo cerrado de rumbo a 50 Hz contra imu.get_yaw().
-# Constantes ancladas al PID de rumbo de fabrica de XRPLib
+# Closed-loop heading at 50 Hz against imu.get_yaw().
+# Constants anchored to the XRPLib factory heading PID
 # (differential_drive.py: kp=0.064, ki=0.12, kd=0.0055,
 #  integral_zone=4, max_integral=3).
 # ---------------------------------------------------------
-# Uso desde bloques XRPCode:
+# Usage from XRPCode blocks:
 #   from arma1_gyro_lock import gyro_lock
-#   gyro_lock.start()                 # una vez al arrancar
-#   gyro_lock.engage_straight(0.5)    # recto con rumbo clavado
-#   gyro_lock.hold_pose()             # anti-trompo en parado
-#   gyro_lock.disable()               # soltar control (giro libre)
-#   gyro_lock.set_target(ang)         # reclavar rumbo absoluto
+#   gyro_lock.start()                 # once at boot
+#   gyro_lock.engage_straight(0.5)    # straight with locked heading
+#   gyro_lock.hold_pose()             # anti-spin while stopped
+#   gyro_lock.disable()               # release control (free turn)
+#   gyro_lock.set_target(ang)         # re-lock an absolute heading
 # ---------------------------------------------------------
-# Cadena de armas (composicion): gyro_lock.attach(fn) hace que
-# los esfuerzos finales pasen por `fn(l, r)` antes del motor.
+# Weapons chain (composition): gyro_lock.attach(fn) makes the
+# final efforts pass through `fn(l, r)` before the motors.
 # =========================================================
 import uasyncio as asyncio
 import time
 from XRPLib.defaults import drivetrain, imu
 
 # ------------------------------------------------------------
-# CALIBRACION EN PISTA  (un parametro a la vez, en este orden)
+# ON-TRACK CALIBRATION  (one parameter at a time, in this order)
 # ------------------------------------------------------------
-KP        = 0.064   # [paso 1] esfuerzo por grado de error. Oscila -> baja 30-40%.
-KI        = 0.06    # [paso 3] deriva constante. Solo si KP/KD ya son estables.
-KD        = 0.0055  # [paso 2] amortigua trompos y choques. Sube si hay rebote.
-I_ZONE    = 4.0     # grados: la integral solo acumula dentro de esta banda
-MAX_I     = 0.3     # tope del integral (fabrica usa 3, pero con retardo de
-                    # rampa+motor provoca caza sostenida +-4 grados: probado
-                    # en bateria: MAX_I <= 0.3 elimina la oscilacion)
-OUT_LIMIT = 0.5     # techo del esfuerzo de correccion
-DEADBAND  = 1.5     # zona muerta en grados: evita temblor con el robot quieto
-MIN_EFFORT = 0.14   # fabrica: esfuerzo minimo para que la rueda gire
-SIGN      = 1.0     # -1.0 si al corregir el robot se aparta MAS
-DT_MS     = 20      # periodo del lazo (50 Hz). La IMU integra a 208 Hz.
+KP        = 0.064   # [step 1] effort per degree of error. Oscillates -> lower 30-40%.
+KI        = 0.06    # [step 3] constant drift. Only once KP/KD are stable.
+KD        = 0.0055  # [step 2] damps spins and crashes. Raise if it bounces.
+I_ZONE    = 4.0     # degrees: the integral only accumulates inside this band
+MAX_I     = 0.3     # integral cap (factory uses 3, but with the ramp+motor
+                    # delay that causes sustained hunting of +-4 degrees:
+                    # battery-proven that MAX_I <= 0.3 kills the oscillation)
+OUT_LIMIT = 0.5     # ceiling of the correction effort
+DEADBAND  = 1.5     # deadband in degrees: avoids tremor with the robot still
+MIN_EFFORT = 0.14   # factory: minimum effort for the wheel to turn
+SIGN      = 1.0     # -1.0 if correcting pushes the robot FURTHER off
+DT_MS     = 20      # loop period (50 Hz). The IMU integrates at 208 Hz.
 
 
 def _wrap180(a):
@@ -44,9 +44,9 @@ def _wrap180(a):
 
 
 class PID:
-    """PID espejo del de XRPLib (zona integral + tope integral),
-    con derivada sobre la medida para evitar el pico de derivada
-    al cambiar de setpoint."""
+    """Mirror of the XRPLib PID (integral zone + integral cap),
+    with derivative on measurement to avoid the derivative spike
+    when the setpoint changes."""
 
     def __init__(self):
         self.reset()
@@ -73,8 +73,8 @@ class PID:
 
 
 class GyroLock:
-    """Bloqueo continuo de rumbo. Mientras este activo, es el DUENO de los
-    motores: no llamar drivetrain.straight()/turn()/set_speed() a la vez."""
+    """Continuous heading lock. While active it OWNS the motors:
+    never call drivetrain.straight()/turn()/set_speed() at the same time."""
 
     def __init__(self):
         self.pid = PID()
@@ -87,13 +87,13 @@ class GyroLock:
         self._post = None
         self._task = None
 
-    # ---------------- composicion con otras armas ----------------
+    # ---------------- composition with other weapons ----------------
     def attach(self, fn):
-        """fn(left, right) recibe los esfuerzos finales corregidos y los
-        aplica (por ejemplo, el Arma 2). Si no hay gancho, escribe directo."""
+        """fn(left, right) receives the corrected final efforts and
+        applies them (for example, Weapon 2). Without a hook it writes directly."""
         self._post = fn
 
-    # ---------------- API para bloques XRPCode ----------------
+    # ---------------- API for XRPCode blocks ----------------
     def set_target_here(self):
         self.target = imu.get_yaw()
         self.pid.reset()
@@ -126,28 +126,28 @@ class GyroLock:
         self.pid.reset()
         if self._post is None:
             drivetrain.set_effort(0.0, 0.0)
-        # Con gancho (cadena de armas) NO escribe: el dueno de los
-        # motores (Arma 4) decide el paro con su frenado activo.
+        # With a hook (weapons chain) it does NOT write: the owner of the
+        # motors (Weapon 4) decides the stop with its active braking.
 
     def hold_pose(self):
-        """Anti-trompo en parado: bloquea el rumbo actual sin avanzar."""
+        """Anti-spin while stopped: locks the current heading without moving."""
         self.set_target_here()
         self.set_base(0.0, 0.0)
         self.enable()
 
     def engage_straight(self, speed):
-        """Avance recto con el rumbo clavado en el angulo actual."""
+        """Straight drive with the heading locked at the current angle."""
         self.set_target_here()
         self.set_base(speed, speed)
         self.enable()
 
     def start(self):
-        """Corre siempre en background a 50 Hz. Idempotente."""
+        """Runs forever in the background at 50 Hz. Idempotent."""
         if self._task is None or self._task.done():
             self._task = asyncio.create_task(self._run())
         return self
 
-    # ---------------- lazo no bloqueante ----------------
+    # ---------------- non-blocking loop ----------------
     async def _run(self):
         next_tick = time.ticks_ms()
         while True:
@@ -166,8 +166,8 @@ class GyroLock:
             return
         err = _wrap180(self.target - imu.get_yaw())
         if abs(err) < DEADBAND and self.base_l == 0.0 and self.base_r == 0.0:
-            # en hold y dentro de la banda: esfuerzo CERO, sin reset del
-            # integral (conserva el trim anti-deriva para cuando salga)
+            # in hold and inside the band: ZERO effort, no integral reset
+            # (keeps the anti-drift trim for when it comes out)
             u = 0.0
             self.pid.prev = err
         else:
@@ -176,11 +176,11 @@ class GyroLock:
         self.last_out = u
         l = self.base_l - SIGN * u
         r = self.base_r + SIGN * u
-        # Con base de avance (piloto pidiendo marchar) se pisa el umbral de
-        # fabrica para que ordenes suaves SI muevan el robot. En HOLD (base 0,
-        # anti-trompo en parado / llegada a casa) NO hay piso: el esfuerzo
-        # natural bajo el rozamiento estatico corrige derivas diminutas sin
-        # arrancar pulsos que sacuden al robot del sitio.
+        # With a motion base (pilot asking to march) we floor at the factory
+        # threshold so gentle orders DO move the robot. In HOLD (base 0,
+        # anti-spin while stopped / home arrival) there is NO floor: the
+        # natural effort under static friction corrects tiny drifts without
+        # starting pulses that shake the robot off its spot.
         if (self.base_l != 0.0 or self.base_r != 0.0):
             if 0.0 < abs(l) < MIN_EFFORT:
                 l = MIN_EFFORT if l > 0 else -MIN_EFFORT

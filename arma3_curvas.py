@@ -1,38 +1,38 @@
 # =========================================================
-# ARMA 3: CURVAS EXPONENCIALES Y DINAMICAS DE CONTROL
-# (Manejo Quirurgico)
+# WEAPON 3: EXPONENTIAL & DYNAMIC CONTROL CURVES
+# (Surgical Handling)
 # Team Robots Legends - FUSAMO - XRP Iron Acres
 # ---------------------------------------------------------
-# Transforma ordenes de avance/giro con una mezcla cubica:
+# Transforms forward/turn orders with a cubic mix:
 #   y(v) = MIX * v + (1 - MIX) * v^3
-#   - En v pequeno domina el cubo -> movimientos de milimetros.
-#   - En v = 1 la salida es EXACTAMENTE 1 -> velocidad punta 100%.
-#   - MIX = sensibilidad: 0 = maxima precision, 1 = respuesta lineal.
-# Incluye:
-#   - banda muerta re-escalada (sin salto al salir de reposo)
-#   - Suavizador (limitador de rampa) para evitar tirones,
-#     complementario a la rampa fisica del Arma 4.
+#   - For small v the cube dominates -> millimeter movements.
+#   - At v = 1 the output is EXACTLY 1 -> 100% top speed.
+#   - MIX = sensitivity: 0 = maximum precision, 1 = linear response.
+# Includes:
+#   - re-scaled deadband (no jump when leaving rest)
+#   - Slew limiter to avoid jerks, complementary to the
+#     physical ramp of Weapon 4.
 # ---------------------------------------------------------
-# Uso desde bloques XRPCode:
+# Usage from XRPCode blocks:
 #   from arma3_curvas import forma, Suavizador, suav_avance, suav_giro
-#   v = forma(orden_del_mando)                     # curva sola
-#   v = suav_avance.update(forma(orden), dt)       # curva + rampa
-# Es matematica pura: no consume tareas ni sensores.
+#   v = forma(stick_order)                     # curve alone
+#   v = suav_avance.update(forma(order), dt)   # curve + ramp
+# Pure math: consumes no tasks nor sensors.
 # =========================================================
 
 # ------------------------------------------------------------
-# CALIBRACION EN PISTA
+# ON-TRACK CALIBRATION
 # ------------------------------------------------------------
-MIX        = 0.35   # 0 = cubico puro (quirurgico), 1 = lineal (agresivo)
-MIX_PRECIS = 0.12   # modo precision (BUMPER_L del mando mantenido)
-DEADBAND   = 0.04   # ordenes menores no mueven nada (filtra ruido del mando)
-SLEW_DEF   = 3.0    # esfuerzo por segundo: rampa de entrada
-SLEW_SUELTA = 12.0  # al soltar: caida rapida (antipaneo con stick a cero)
+MIX        = 0.35   # 0 = pure cubic (surgical), 1 = linear (aggressive)
+MIX_PRECIS = 0.12   # precision mode (BUMPER_L held)
+DEADBAND   = 0.04   # smaller orders move nothing (filters stick noise)
+SLEW_DEF   = 3.0    # effort per second: input ramp
+SLEW_SUELTA = 12.0  # on release: fast drop (anti-pan with stick at zero)
 
 
 def forma(v, mix=MIX, deadband=DEADBAND):
-    """Curva de respuesta cubica con banda muerta re-escalada.
-    Entrada y salida en [-1, 1]. Continua y sin saltos."""
+    """Cubic response curve with a re-scaled deadband.
+    Input and output in [-1, 1]. Continuous and jump-free."""
     if v > 1.0:
         v = 1.0
     elif v < -1.0:
@@ -46,8 +46,8 @@ def forma(v, mix=MIX, deadband=DEADBAND):
 
 
 def invertida(y, mix=MIX, deadband=DEADBAND):
-    """Aproximacion a la inversa de forma(): util para calibracion
-    (dice que orden hace falta para una salida deseada)."""
+    """Approximation to the inverse of forma(): useful for calibration
+    (tells which order is needed for a desired output)."""
     if abs(y) < 1e-6:
         return 0.0
     v = y
@@ -68,8 +68,8 @@ def invertida(y, mix=MIX, deadband=DEADBAND):
 
 
 class Suavizador:
-    """Limitador de rampa de entrada: impide cambios bruscos de orden.
-    Una instancia por eje (avance y giro)."""
+    """Input slew limiter: prevents abrupt changes of order.
+    One instance per axis (forward and turn)."""
 
     def __init__(self, slew=SLEW_DEF):
         self.slew = slew
@@ -79,10 +79,10 @@ class Suavizador:
         self.v = 0.0
 
     def update(self, objetivo, dt):
-        # la rampa protege SOLO la subida: al soltar la palanca la
-        # orden cae rapido (la inercia de la rueda ya es un filtro
-        # fisico); limitar tambien la bajada dejaba al robot girando
-        # "fantasma" hasta ~1 s con el stick en cero (paneos F4)
+        # the ramp protects ONLY the rise: on stick release the order
+        # falls fast (wheel inertia is already a physical filter);
+        # limiting the descent too left the robot turning "ghost-style"
+        # for ~1 s with the stick at zero (F4 pans)
         if objetivo > self.v:
             paso = max(self.slew, SLEW_SUELTA) * dt
             if objetivo - self.v <= paso:
@@ -94,6 +94,6 @@ class Suavizador:
         return self.v
 
 
-# instancias listas para el mando (avance y giro)
+# instances ready for the sticks (forward and turn)
 suav_avance = Suavizador()
 suav_giro = Suavizador()

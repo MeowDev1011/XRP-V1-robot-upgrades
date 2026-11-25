@@ -1,17 +1,17 @@
 # =========================================================
-# MAIN DE PARTIDA PARA LA PLACA XRP - Team Robots Legends
+# MATCH ENTRY POINT FOR THE XRP BOARD - Team Robots Legends
 # ---------------------------------------------------------
-# Pegar/copiar en XRPCode (o subir como main.py). Conecta el
-# gamepad fisico y las 5 armas en la cadena correcta.
-# REQUISITOS DE PISTA:
-#   - IMU calibrada y robot quieto al encender.
-#   - XRP conectado por BLUETOOTH a la estacion de conduccion
-#     (con cable USB el gamepad no funciona, guia oficial).
-#   - Gamepad USB conectado a la computadora de operacion.
-# CONTROLES:
-#   Y1 = avance / retroceso     X1 = giro
-#   START = armar reloj y casa (A5). BACK = retorno on/off
-#   BUMPER_L (mantener) = modo precision
+# Paste/upload in XRPCode (or deploy as main.py). It wires the
+# physical gamepad and the 5 weapons into the correct chain.
+# TRACK REQUIREMENTS:
+#   - IMU calibrated and robot still at power-on.
+#   - XRP connected by BLUETOOTH to the driving station
+#     (over USB cable the gamepad does not work, official guide).
+#   - USB gamepad connected to the operator's computer.
+# CONTROLS:
+#   Y1 = forward / backward     X1 = turn
+#   START = arm clock & home (W5). BACK = return assist on/off
+#   BUMPER_L (hold) = precision mode
 # =========================================================
 import asyncio
 from XRPLib.defaults import imu
@@ -30,7 +30,7 @@ def _gancho(l, r):
 
 
 def iniciar_sistema():
-    gyro_lock.attach(_gancho)          # A1 -> A2 -> A4 (dueno de motores)
+    gyro_lock.attach(_gancho)          # W1 -> W2 -> W4 (owner of the motors)
     torque_boost.enable()
     traction_brake.enable()
     arma5.conectar(gyro_lock)
@@ -44,11 +44,11 @@ def iniciar_sistema():
 
 async def _vivir():
     while True:
-        await asyncio.sleep_ms(1000)   # solo la tarea raiz duerme
+        await asyncio.sleep_ms(1000)   # only the root task sleeps
 
 
 def main():
-    imu.calibrate(1.0)                 # calibracion de arranque de la IMU
+    imu.calibrate(1.0)                 # boot-time IMU calibration
     iniciar_sistema()
     asyncio.run(_vivir())
 

@@ -1,44 +1,44 @@
 # =========================================================
-# ARMA 2: REFUERZO DE TORQUE INTELIGENTE (ANTI-ATASCO)
+# WEAPON 2: SMART TORQUE BOOST (ANTI-STALL)
 # Team Robots Legends - FUSAMO - XRP Iron Acres
 # ---------------------------------------------------------
-# Lazo cerrado por RUEDA: esfuerzo pedido vs. rpm real.
-# get_speed() es muestreada cada 20 ms por la propia XRPLib
-# (encoded_motor.py: timer de _UPDATE_PERIOD_MS), asi que la
-# medicion es gratis y siempre fresca.
-# Modelo de friccion del fuente oficial: kS=0.12, kV=0.02.
-#   rpm esperadas = (efectivo - kS) / kV
-# Si la rueda gira mucho menos de lo esperado durante
-# TICKS_CONFIRMAR, es un atasco real: el boost sube escalando
-# solo en ESA rueda y se libera en cuanto recupera fluidez.
+# Closed loop per WHEEL: commanded effort vs. real rpm.
+# get_speed() is sampled every 20 ms by XRPLib itself
+# (encoded_motor.py: _UPDATE_PERIOD_MS timer), so the
+# measurement is free and always fresh.
+# Friction model of the official source: kS=0.12, kV=0.02.
+#   expected rpm = (effort - kS) / kV
+# If the wheel turns much less than expected during
+# TICKS_CONFIRMAR, it is a real stall: the boost climbs
+# in THAT wheel only and releases as soon as it flows again.
 # ---------------------------------------------------------
-# Dos modos:
-#   1) Compuesto (recomendado): gyro_lock.attach(arma2.feed)
-#      y el ultimo eslabon llama a torque_boost.aplicar().
-#   2) Solo: set_command(l, r) + enable() + start().
+# Two modes:
+#   1) Composite (recommended): gyro_lock.attach(arma2.feed)
+#      and the last chain link calls torque_boost.aplicar().
+#   2) Standalone: set_command(l, r) + enable() + start().
 # =========================================================
 import uasyncio as asyncio
 import time
 from XRPLib.defaults import drivetrain, board, left_motor, right_motor
 
 # ------------------------------------------------------------
-# CALIBRACION EN PISTA
+# ON-TRACK CALIBRATION
 # ------------------------------------------------------------
-KS             = 0.12   # de fabrica: esfuerzo de "romper el estatico"
-KV             = 0.02   # de fabrica: esfuerzo por cada rpm
-COMP_BATERIA   = True   # multiplica por board.voltage_scale (torque estable)
-STALL_CMD_MIN  = 0.25   # no vigilar atascos por debajo de este esfuerzo
-RPM_MIN_FALLO  = 8.0    # velocidad esperada minima para hablar de atasco
-RATIO_ATASCO   = 0.4    # atasco si gira < 40% de lo esperado
-TICKS_CONFIRMAR = 8     # 8 x 20 ms = 160 ms confirmando atasco (anti-ruido)
-BOOST_MAX      = 0.35   # esfuerzo extra maximo por rueda
-BOOST_PASO     = 0.012  # sube ~0.6 esfuerzo/seg: fuerte pero sensible
-BOOST_FUGA     = 0.05   # liberacion por ciclo al recuperar fluidez
+KS             = 0.12   # factory: effort to "break the static"
+KV             = 0.02   # factory: effort per rpm
+COMP_BATERIA   = True   # multiply by board.voltage_scale (stable torque)
+STALL_CMD_MIN  = 0.25   # do not watch for stalls below this effort
+RPM_MIN_FALLO  = 8.0    # minimum expected speed to speak of a stall
+RATIO_ATASCO   = 0.4    # stall if turning < 40% of expected
+TICKS_CONFIRMAR = 8     # 8 x 20 ms = 160 ms confirming stall (anti-noise)
+BOOST_MAX      = 0.35   # maximum extra effort per wheel
+BOOST_PASO     = 0.012  # ~0.6 effort/second climb: strong but sensitive
+BOOST_FUGA     = 0.05   # release per cycle once fluid again
 DT_MS          = 20
 
 
 class _Rueda:
-    """Estado de una rueda: boost actual + contador de ciclos de atasco."""
+    """State of one wheel: current boost + stall cycle counter."""
 
     def __init__(self, motor):
         self.motor = motor
@@ -75,7 +75,7 @@ class TorqueBoost:
         self._cmd_r = 0.0
         self._task = None
 
-    # ---------------- estado observable para telemetria ----------------
+    # ---------------- observable state for telemetry ----------------
     @property
     def boost_l(self):
         return self._izq.boost
@@ -92,16 +92,16 @@ class TorqueBoost:
     def atasco_r(self):
         return self._der.ticks >= TICKS_CONFIRMAR
 
-    # ---------------- modo compuesto ----------------
+    # ---------------- composite mode ----------------
     def feed(self, left, right):
-        """Devuelve los esfuerzos con boost aplicado. NO escribe motores;
-        el ultimo eslabon de la cadena llama a aplicar(). En modo solo,
-        _run() hace de ultimo eslabon."""
+        """Returns the efforts with boost applied. Does NOT write motors;
+        the last chain link calls aplicar(). In standalone mode,
+        _run() acts as the last link."""
         return self._izq.step(left), self._der.step(right)
 
     def aplicar(self, left, right):
-        """Eslabon final de cualquier cadena: escribe motores, con
-        compensacion de bateria si procede."""
+        """Final link of any chain: writes the motors, with battery
+        compensation when applicable."""
         if not self.enabled:
             self._izq.boost = 0.0
             self._der.boost = 0.0
@@ -109,7 +109,7 @@ class TorqueBoost:
         drivetrain.set_effort(max(-1.0, min(1.0, left * vs)),
                               max(-1.0, min(1.0, right * vs)))
 
-    # ---------------- modo solo ----------------
+    # ---------------- standalone mode ----------------
     def set_command(self, left, right):
         self._cmd_l = left
         self._cmd_r = right
@@ -128,7 +128,7 @@ class TorqueBoost:
         drivetrain.set_effort(0.0, 0.0)
 
     def start(self):
-        """Tarea propia a 50 Hz. SOLO si no esta compuesto con el Arma 1."""
+        """Own 50 Hz task. ONLY if not composed with Weapon 1."""
         if self._task is None or self._task.done():
             self._task = asyncio.create_task(self._run())
         return self

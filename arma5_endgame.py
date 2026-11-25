@@ -1,24 +1,24 @@
 # =========================================================
-# ARMA 5: GESTOR DE RELOJ Y ODOMETRIA DE CIERRE (AUTO-ENDGAME)
+# WEAPON 5: CLOCK MANAGER & CLOSING ODOMETRY (AUTO-ENDGAME)
 # Team Robots Legends - FUSAMO - XRP Iron Acres
 # ---------------------------------------------------------
-# Partida = 150,000 ms exactos (ticks_ms, sin deriva).
-# Odometria por fusion: distancia de encoders (posiciones del
-# drivetrain, en cm) + rumbo de la IMU (get_yaw, integrada a
-# 208 Hz por la propia libreria). Si la IMU cae, el rumbo se
-# respalda con la diferencia de encoders (constantes de
-# fabrica: ruedas 6 cm, track 15.5 cm).
-# Endgame: a los ultimos ULTIMOS_MS activa alerta y, si se
-# habilita el MODO RETORNO, conduce continuamente hacia la
-# pose de inicio: NO es una macro, recalcula rumbo y velocidad
-# cada ciclo (rumbo vivo) y cede ante obstaculos de frente.
+# Match = exactly 150,000 ms (ticks_ms, no drift).
+# Fusion odometry: encoder distance (drivetrain positions,
+# in cm) + IMU heading (get_yaw, integrated at 208 Hz by the
+# library itself). If the IMU drops, heading is backed up by
+# the encoder difference (factory constants: wheels 6 cm,
+# track 15.5 cm).
+# Endgame: at the last ULTIMOS_MS it raises the alert and, if
+# RETURN mode is enabled, drives continuously toward the
+# starting pose: NOT a macro, it recalculates heading and
+# speed every cycle (live heading) and yields to front obstacles.
 # ---------------------------------------------------------
-# Uso desde bloques XRPCode:
+# Usage from XRPCode blocks:
 #   from arma5_endgame import arma5
-#   arma5.conectar(gyro_lock)     # inyecta el Arma 1
-#   arma5.start()                 # tarea 50 Hz en background
-#   arma5.iniciar_partida()       # robot YA en zona de inicio
-#   arma5.modo_retorno(True)      # activa asistencia de cierre
+#   arma5.conectar(gyro_lock)     # injects Weapon 1
+#   arma5.start()                 # 50 Hz background task
+#   arma5.iniciar_partida()       # robot ALREADY in the start zone
+#   arma5.modo_retorno(True)      # enables closing assist
 #   arma5.restante_s() / arma5.is_endgame() / arma5.pose()
 # =========================================================
 import uasyncio as asyncio
@@ -27,27 +27,27 @@ import math
 from XRPLib.defaults import drivetrain, imu, board, rangefinder
 
 # ------------------------------------------------------------
-# CALIBRACION EN PISTA
+# ON-TRACK CALIBRATION
 # ------------------------------------------------------------
-PARTIDA_MS        = 150000   # 2:30 exactos
-ULTIMOS_MS        = 12000    # duracion del finalgame: aviso y retorno
+PARTIDA_MS        = 150000   # exactly 2:30
+ULTIMOS_MS        = 12000    # endgame duration: alert + return
 DT_MS             = 20
-V_RETORNO         = 0.85     # esfuerzo base del retorno (calibrado: cubre
-                             # casa a ~130 cm en los 12 s; 0.45 llega tarde)
-K_LLEGADA_SUAVE   = 0.04     # por cm restante: reduce velocidad al acercarse
-V_MIN_LLEGADA     = 0.18     # piso de velocidad para no morir antes de llegar
-TOLERANCIA_CM     = 10.0     # "ya estamos en casa" (confirmar con manual:
-                             # 'En Zona' real es una franja, no un punto de 6 cm)
-PUNTO_CLAVAR_CM   = 8.0      # no soltar el retorno al ras de la tolerancia:
-                             # apuntar 2 cm MAS ADENTRO para que el deslizamiento
-                             # final deje al robot dentro de zona con margen
-SEGURO_FINAL_MS  = 2000     # en los ultimos 2 s: si ya esta dentro de zona y
-                             # todavia ordena avance, orden cero -> el Arma 4
-                             # clave al robot pase lo que pase con la odometria
-PIVOTE_GRADOS     = 45.0     # si casa queda a mas de este angulo: pivonar primero
-DIST_SEGURIDAD_CM = 12.0     # obstaculo minimo de frente durante el retorno
-TRACK_CM          = 15.5     # track de fabrica (respaldo sin IMU)
-LED_HZ            = 4        # parpadeo del LED durante el endgame
+V_RETORNO         = 0.85     # base return effort (calibrated: covers home
+                             # at ~130 cm within the 12 s; 0.45 arrives late)
+K_LLEGADA_SUAVE   = 0.04     # per remaining cm: lowers speed on approach
+V_MIN_LLEGADA     = 0.18     # speed floor so it does not die before arriving
+TOLERANCIA_CM     = 10.0     # "we are home" (confirm with manual: the real
+                             # 'In Zone' is a band, not a 6 cm point)
+PUNTO_CLAVAR_CM   = 8.0      # do not release the return right at tolerance:
+                             # aim 2 cm DEEPER so the final slide leaves the
+                             # robot inside the zone with margin
+SEGURO_FINAL_MS  = 2000     # in the last 2 s: if already inside the zone and
+                             # still ordering motion, zero command -> Weapon 4
+                             # nails the robot no matter what the odometry says
+PIVOTE_GRADOS     = 45.0     # if home is farther than this angle: pivot first
+DIST_SEGURIDAD_CM = 12.0     # minimum front obstacle during the return
+TRACK_CM          = 15.5     # factory track (fallback without IMU)
+LED_HZ            = 4        # LED blink rate during the endgame
 
 
 def _wrap180(a):
@@ -70,14 +70,14 @@ class Arma5:
         self._gyro = None
         self._task = None
 
-    # ---------------- configuracion ----------------
+    # ---------------- configuration ----------------
     def conectar(self, gyro_lock):
-        """Inyecta el Arma 1, que ejecuta el retorno asistido."""
+        """Injects Weapon 1, which executes the assisted return."""
         self._gyro = gyro_lock
 
     def iniciar_partida(self):
-        """Arranca el reloj y toma la pose ACTUAL como casa.
-        Colocar el robot en la zona de inicio ANTES de llamar."""
+        """Starts the clock and takes the CURRENT pose as home.
+        Place the robot in the start zone BEFORE calling."""
         self._t0 = time.ticks_ms()
         self.con_imu = 1 if imu.is_connected() else 0
         self._dic = [drivetrain.get_left_encoder_position(),
@@ -91,14 +91,14 @@ class Arma5:
         self._en_casa = False
 
     def hogar_aqui(self):
-        """Recaptura la pose actual como casa (p. ej. tras recolocarlo)."""
+        """Recaptures the current pose as home (e.g. after repositioning)."""
         self._home_x = self._x
         self._home_y = self._y
 
     def modo_retorno(self, on):
         self.retorno_on = on
 
-    # ---------------- consultas (todo O(1)) ----------------
+    # ---------------- queries (all O(1)) ----------------
     def ms_transcurridos(self):
         if self._t0 is None:
             return 0
@@ -123,7 +123,7 @@ class Arma5:
         return math.sqrt((self._home_x - self._x) ** 2 +
                          (self._home_y - self._y) ** 2)
 
-    # ---------------- tarea 50 Hz ----------------
+    # ---------------- 50 Hz task ----------------
     def start(self):
         if self._task is None or self._task.done():
             self._task = asyncio.create_task(self._run())
@@ -169,8 +169,8 @@ class Arma5:
         dist = self.distancia_al_hogar()
         en_zona = dist <= TOLERANCIA_CM
         if en_zona and self.ms_restantes() <= SEGURO_FINAL_MS:
-            # seguro de cierre: garantiza el CLAVADO aunque el crep del avance
-            # minimo del avance siga moviendo al robot al silbatazo
+            # closing safety: guarantees the NAILING even if the minimum
+            # effort floor keeps nudging the robot at the buzzer
             self._gyro.set_base(0.0, 0.0)
             self._en_casa = True
             return
@@ -179,12 +179,12 @@ class Arma5:
                 self._en_casa = True
                 self._gyro.set_base(0.0, 0.0)
             return
-        # rumbo VIVO: el objetivo se recalcula cada ciclo
+        # LIVE heading: the target is recalculated every cycle
         beta = math.atan2(self._home_y - self._y, self._home_x - self._x)
         err_rumbo = _wrap180(math.degrees(beta - self._th))
         self._gyro.set_target(math.degrees(beta))
         if abs(err_rumbo) > PIVOTE_GRADOS:
-            # mirar primero a casa (pivote en el sitio: no se pierde distancia)
+            # face home first (pivot in place: no distance is lost)
             self._gyro.set_base(0.0, 0.0)
             return
         v = V_RETORNO

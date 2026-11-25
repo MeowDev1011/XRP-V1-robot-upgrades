@@ -1,45 +1,45 @@
 # =========================================================
-# BATERIA 24/7 — Team Robots Legends (FUSAMO)
-# Cada 3 horas (o a pedido) juega el paquete completo:
-#   Iron Acres (300 partidas KID + 100 ADULTO + 100 SIN_ASIST)
-#   CONDUCIR / SUMO / SUMO2 / FUTBOL / FUTBOL2 (100 KID)
-#   estres 30 partidas + 12 pruebas unitarias
-# Si una metrica cae de su umbral, el run queda EN ROJO y los
-# logs de cada bateria quedan como artefactos para revisar la
-# causa y EDITAR piloto/armas (nunca las pruebas).
+# 24/7 BATTERY — Team Robots Legends (FUSAMO)
+# Every 3 hours (or on demand) it plays the full package:
+#   Iron Acres (300 KID matches + 100 ADULTO + 100 SIN_ASIST)
+#   DRIVE / SUMO / SUMO2 / FUTBOL / FUTBOL2 (100 KID)
+#   30-match stress + 12 math unit tests
+# If a metric drops below its threshold the run goes RED and
+# the log of each battery is kept as an artifact to review
+# the cause and EDIT pilot/weapons (never the tests).
 # =========================================================
-name: baterias-24-7
+name: batteries-24-7
 
 on:
   push:
     branches: [main]
   schedule:
-    - cron: "0 */3 * * *"     # cada 3 horas, 24/7
-  workflow_dispatch: {}       # boton "Run workflow" para correr al momento
+    - cron: "0 */3 * * *"     # every 3 hours, 24/7
+  workflow_dispatch: {}       # "Run workflow" button to fire it now
 
 permissions:
   contents: read
 
 jobs:
-  baterias:
-    name: Iron Acres + SUMO + SUMO2 + FUTBOL + FUTBOL2 + CONDUCIR
+  batteries:
+    name: Iron Acres + SUMO + SUMO2 + FUTBOL + FUTBOL2 + DRIVE
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
-      - name: Jugar el paquete completo (con umbrales de calidad)
-        id: bateria
+      - name: Play the full package (with quality thresholds)
+        id: battery
         run: |
           export BATERIA_LOGS="$RUNNER_TEMP/logs"
           mkdir -p "$BATERIA_LOGS"
-          bash ci/bateria.sh | tee "$BATERIA_LOGS/salida.txt"
+          bash ci/bateria.sh | tee "$BATERIA_LOGS/output.txt"
           cat /tmp/summary.md >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Guardar logs de las baterias
+      - name: Save battery logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: logs-bateria
+          name: battery-logs
           path: ${{ runner.temp }}/logs
           retention-days: 90

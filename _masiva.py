@@ -1,40 +1,40 @@
 # =========================================================
-# CAMPAÑA MASIVA IRON ACRES - Team Robots Legends (FUSAMO)
+# IRON ACRES MASS CAMPAIGN - Team Robots Legends (FUSAMO)
 # ---------------------------------------------------------
-# Miles de partidas simultaneas (multiproceso, 5 nucleos)
-# con el CODIGO REAL de la placa (piloto + 5 armas) jugadas
-# por un PILOTO KID: nino avanzado, buen gamer, pero sin la
-# precision motriz de un adulto. El kid juega SOLO con el
-# gamepad fisico virtual: la asistencia (Arma 1-5) hace el resto.
+# Thousands of simultaneous matches (multiprocess, 5 cores)
+# with the REAL board code (pilot + 5 weapons) played by a
+# KID PILOT: an advanced kid, a good gamer, but without the
+# motor precision of an adult. The kid plays ONLY with the
+# virtual physical gamepad: the assist (Weapons 1-5) does the rest.
 #
-# CAMPO (oficial): 272 x 137 cm (MAT 107 x 54 pulgadas).
-#   - Zona de inicio de la alianza en una pared corta.
-#   - City Center con goles de alianza (rojo/azul) al centro.
-#   - Hoppers de productos y granero (barn).
-# PUNTUACION (modelo parametrico): EDITAR al conseguir el
-# manual oficial "Read the Manual" (experiential.bot).
-#   PTS_PRODUCTO: producto entregado en el gol de la alianza.
-#   PTS_PARK:     robot EN ZONA de inicio al final (park).
-#   PTS_ARRASTRE: producto cargado al sonar el final (0 = ruido).
+# FIELD (official): 272 x 137 cm (107 x 54 inch MAT).
+#   - Alliance start zone on a short wall.
+#   - City Center with alliance goals (red/blue) in the middle.
+#   - Product hoppers and the barn.
+# SCORING (parametric model): EDIT once the official
+# "Read the Manual" is obtained (experiential.bot).
+#   PTS_PRODUCTO: product delivered into the alliance goal.
+#   PTS_PARK:     robot IN the start zone at the end (park).
+#   PTS_ARRASTRE: product still carried at the buzzer (0 = noise).
 #
-# PRESION DEL JUEGO simulada:
-#   - Choques con pared/rival (0-3): trompo de 15-40 grados.
-#     Un choque de mas de 25 grados TIRA el producto cargado.
-#   - Atascos fisicos de rueda (0-2) de 2-5 s.
-#   - Bateria 82-100%, deriva de IMU + ruido, centro concurrido.
+# SIMULATED GAME PRESSURE:
+#   - Wall/opponent crashes (0-3): spin of 15-40 degrees.
+#     A crash of more than 25 degrees KNOCKS OUT the carried product.
+#   - Physical wheel stalls (0-2) of 2-5 s.
+#   - Battery 82-100%, IMU drift + noise, crowded center.
 #
-# PILOTO KID (parametros editables abajo):
-#   TREMOR_SIGMA    temblor en las palancas mientras las sostiene
-#   DECISION_MS     cadencia humana de decision (~5 Hz)
-#   REACCION_MS     retardo percepcion-accion (+/- jitter)
-#   KP_KID          grados de error de rumbo -> palanca 1.0
-#   MUERTE_PUNTERIA deja de corregir dentro de este angulo
-#   RUIDO_VISTA_*   el ojo mide distancias/angulos con error
-#   V_KID           velocidad de crucero del kid
-#   STOP_CM         se acerca "como sea" hasta esta distancia
+# KID PILOT (editable parameters below):
+#   TREMOR_SIGMA    stick tremor while holding them
+#   DECISION_MS     human decision cadence (~5 Hz)
+#   REACCION_MS     perception-action delay (+/- jitter)
+#   KP_KID          heading-error degrees -> stick 1.0
+#   MUERTE_PUNTERIA stops correcting inside this angle
+#   RUIDO_VISTA_*   the eye measures distances/angles with error
+#   V_KID           kid cruise speed
+#   STOP_CM         closes in "any way it can" up to this distance
 #
-# USO:
-#   python3 _masiva.py            -> 1200 partidas, 4 procesos
+# USAGE:
+#   python3 _masiva.py            -> 1200 matches, 4 processes
 #   MASIVA_N=3000 python3 _masiva.py
 #   MASIVA_PILOTO=KID|BUENO|REGULAR|ADULTO python3 _masiva.py
 # =========================================================
@@ -45,18 +45,18 @@ import multiprocessing
 
 import simulador_xrp as SIM
 
-# ---------------- CONFIGURACION DE LA CAMPAÑA ----------------
+# ---------------- CAMPAIGN CONFIGURATION ----------------
 N_PARTIDAS = int(os.environ.get("MASIVA_N", "1200"))
 WORKERS = int(os.environ.get("MASIVA_W", "4"))
 PILOTO = os.environ.get("MASIVA_PILOTO", "KID")
 VARIANTE = os.environ.get("MASIVA_VAR", "ASIST")   # ASIST | SIN_ASIST
 
-# ---------------- PERFIL DEL PILOTO (precision del gamepad) ----------------
+# ---------------- PILOT PROFILE (gamepad precision) ----------------
 PILOTOS = ("KID", "BUENO", "REGULAR", "ADULTO")
 PERFILES = {
-    # temblor, decisiones(ms), reaccion(ms), precision de punteria (KP/banda
-    # muerta/ruido de ojo) y crucero: nino avanzado y bueno en videojuegos,
-    # pero sin la precision motriz de un adulto.
+    # tremor, decisions (ms), reaction (ms), aiming precision (KP/dead-
+    # band/eye noise) and cruise: an advanced kid and good gamer, but
+    # without the motor precision of an adult.
     "KID":     dict(TREMOR_SIGMA=0.050, DECISION_MS=200.0, REACCION_MS=180.0,
                     KP_KID=70.0, MUERTE_PUNTERIA=8.0, RUIDO_VISTA_CM=4.0,
                     RUIDO_VISTA_GRADOS=4.0, V_KID=0.70,
@@ -84,19 +84,19 @@ PERFIL = PERFILES[PILOTO]
     PERFIL["RUIDO_VISTA_GRADOS"], PERFIL["V_KID"], PERFIL["STOP_CM"],
     PERFIL["FRENA_A_CM"])
 
-# ---------------- CAMPO Y PUNTUACION (EDITAR CON MANUAL) ----------------
-CAMPO_L_CM = 272.0        # largo (eje Y: de nuestra pared al fondo)
-CAMPO_W_CM = 68.0         # semiancho alambrado (±) para choques de pared
-CARGA_XY = (30.0, 90.0)   # punto de recogida de productos (hopper/granero)
-GOL_XY = (-5.0, 121.0)    # gol de alianza (City Center)
-PTS_PRODUCTO = 10         # por producto en el gol
-PTS_PARK = 10             # por terminar En Zona de inicio
-PTS_ARRASTRE = 0          # producto cargado sin entregar al final
+# ---------------- FIELD & SCORING (EDIT WITH THE MANUAL) ----------------
+CAMPO_L_CM = 272.0        # length (Y axis: from our wall to the back)
+CAMPO_W_CM = 68.0         # fenced half-width (±) for wall crashes
+CARGA_XY = (30.0, 90.0)   # product pickup point (hopper/barn)
+GOL_XY = (-5.0, 121.0)    # alliance goal (City Center)
+PTS_PRODUCTO = 10         # per product in the goal
+PTS_PARK = 10             # for finishing In the start Zone (park)
+PTS_ARRASTRE = 0          # product carried but not delivered at the end
 
 T_INICIO_CARRERA = 2000.0
-T_DEJA_JUGAR = 138000.0   # el kid suelta palancas y deja el endgame asistido
+T_DEJA_JUGAR = 138000.0   # the kid releases the sticks and leaves the endgame assisted
 MIN_RECOGIDA_CM = 18.0
-CHOQUE_PIERDE_CARGA = 25.0    # grados de trompo que tira el producto
+CHOQUE_PIERDE_CARGA = 25.0    # spin degrees that knock the product out
 UMBRAL_P1 = 3.0
 UMBRAL_P2 = 12.0
 
@@ -112,7 +112,7 @@ def _recargar():
     return sys.modules
 
 
-RX_JIT_MAX = 80.0          # dispersion de reaccion del piloto (ms)
+RX_JIT_MAX = 80.0          # pilot reaction spread (ms)
 
 
 def wrap180(a):
@@ -120,8 +120,8 @@ def wrap180(a):
 
 
 class PilotoKid:
-    """Humano virtual: decide cada DECISION_MS, reacciona tarde,
-    tiembla y mira con ruido. Solo toca el gamepad."""
+    """Virtual human: decides every DECISION_MS, reacts late,
+    trembles and looks with noise. Only touches the gamepad."""
 
     def __init__(self, pad, RNG, GP, arma5):
         self.pad = pad
@@ -248,7 +248,7 @@ def nueva_partida(seed, MOD):
     max_err = 0.0
     choque_regs = []
     p1_pend = []
-    p1_rec = {}          # choque -> alguna vez err <= UMBRAL en la ventana
+    p1_rec = {}          # crash -> any time err <= THRESHOLD in the window
     trompos = 0.0
     inicio = False
 
@@ -269,7 +269,7 @@ def nueva_partida(seed, MOD):
                 pose = arma5.pose()
                 kid.paso(t, pose, SIM.IMU.get_yaw())
 
-            # eventos de recogida/entrega (verdad del campo)
+            # pickup/delivery events (field ground truth)
             if t < T_DEJA_JUGAR:
                 px, py, _ = arma5.pose()
                 if kid.objetivo == "CARGA":
@@ -384,7 +384,7 @@ def nueva_partida(seed, MOD):
                 vivos.append((lo, deadline))
                 continue
             if not p1_rec.get(lo):
-                fallos.append("P1: choque t=%.0f error persistente (>%.0f: %.1f)"
+                fallos.append("P1: crash t=%.0f persistent error (>%.0f: %.1f)"
                               % (lo / 1000.0, UMBRAL_P1, abs(gyro.get_error())))
         p1_pend = vivos
 
@@ -394,7 +394,7 @@ def nueva_partida(seed, MOD):
     if not park:
         fallos.append("P3: final dist=%.1f" % dist)
     if max_err > UMBRAL_P2:
-        fallos.append("P2: crucero %.1f" % max_err)
+        fallos.append("P2: cruise %.1f" % max_err)
 
     puntos = (kid.entregas * PTS_PRODUCTO +
               (PTS_PARK if park else 0) +
@@ -410,9 +410,9 @@ def _trabajo(seed):
     return nueva_partida(seed, MOD)
 
 
-def campaña():
+def campana():
     semilla_base = 777000
-    print("== CAMPAÑA MASIVA IRON ACRES == piloto=%s n=%d procesos=%d variante=%s" %
+    print("== IRON ACRES MASS CAMPAIGN == pilot=%s n=%d processes=%d variant=%s" %
           (PILOTO, N_PARTIDAS, WORKERS, VARIANTE))
     with multiprocessing.Pool(WORKERS) as pool:
         res = pool.map(_trabajo, [semilla_base + i for i in range(N_PARTIDAS)],
@@ -439,36 +439,36 @@ def campaña():
     for e in entregas:
         hist[e] = hist.get(e, 0) + 1
 
-    print("\n-- RESULTADOS (%d partidas, piloto %s) --" % (n, PILOTO))
-    print("PUNTOS: media=%.1f  min=%d  max=%d" %
+    print("\n-- RESULTS (%d matches, pilot %s) --" % (n, PILOTO))
+    print("POINTS: avg=%.1f  min=%d  max=%d" %
           (media(puntos), min(puntos), max(puntos)))
-    print("PRODUCTOS entregados: media=%.2f  [0:%d | 1:%d | 2:%d | 3:%d | 4+:%d]"
+    print("PRODUCTS delivered: avg=%.2f  [0:%d | 1:%d | 2:%d | 3:%d | 4+:%d]"
           % (media(entregas),
              hist.get(0, 0), hist.get(1, 0), hist.get(2, 0), hist.get(3, 0),
              sum(v for k, v in hist.items() if k >= 4)))
-    print("PARK en zona: %.1f%%  (dist media final=%.1f cm)" % (pct(parks), media(dists)))
+    print("PARK in zone: %.1f%%  (avg final dist=%.1f cm)" % (pct(parks), media(dists)))
     desglose = media(entregas) * PTS_PRODUCTO + pct(parks) / 100.0 * PTS_PARK
-    print("Desglose teorico: %.2f productos*%d + park %d*%.2f = %.1f puntos" %
+    print("Theoretical breakdown: %.2f products*%d + park %d*%.2f = %.1f points" %
           (media(entregas), PTS_PRODUCTO, PTS_PARK, pct(parks) / 100.0, desglose))
-    print("ESTRICTAS sin ningun fallo: %.1f%%" % pct(limpias))
-    print("Fallas  P1(trompo post-choque): %d  P2(crucero): %d  P3(park): %d"
+    print("STRICT with no faults: %.1f%%" % pct(limpias))
+    print("Faults  P1(spin post-crash): %d  P2(cruise): %d  P3(park): %d"
           % (f1, f2, f3))
     con_entrega = [r["t_entrega"] for r in res if r["t_entrega"] > 0]
-    print("primera entrega: t media = %.1f s (de 138 s utiles)" %
+    print("first delivery: avg t = %.1f s (of 138 useful s)" %
           (media(con_entrega) if con_entrega else -1.0))
 
     dist_media_park = media([r["dist"] for r in parks]) if parks else -1
-    print("Cierre: dist final si park: %.1f cm | err crucero medio=%.2f | "
-          "trompo medio acumulado=%.1f" % (dist_media_park, media(errs),
+    print("Closing: final dist when parked: %.1f cm | avg cruise err=%.2f | "
+          "avg accumulated spin=%.1f" % (dist_media_park, media(errs),
                                            media([r["trompos"] for r in res])))
     peores = sorted(res, key=lambda r: r["puntos"])[:3]
-    print("Peores partidas:")
+    print("Worst matches:")
     for r in peores:
-        print("  seed=%d puntos=%d entregas=%d park=%s dist=%.1f | %s"
+        print("  seed=%d points=%d deliveries=%d park=%s dist=%.1f | %s"
               % (r["seed"], r["puntos"], r["entregas"], r["park"],
                  r["dist"], "; ".join(r["fallos"]) if r["fallos"] else "-"))
     return res
 
 
 if __name__ == "__main__":
-    campaña()
+    campana()

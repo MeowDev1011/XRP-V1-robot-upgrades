@@ -1,6 +1,6 @@
-# Banco de verificacion en PC (no corre en la placa).
-# Simula XRPLib + uasyncio y pone a prueba la matematica
-# de las 5 armas con una planta fisica simulada del XRP.
+# PC verification bench (does not run on the board).
+# It simulates XRPLib + uasyncio and tests the math of the
+# 5 weapons against a simulated physical plant of the XRP.
 import sys
 import types
 import asyncio as _asyncio
@@ -34,7 +34,7 @@ fake_time.ticks_add = _ticks_add
 fake_time.ticks_diff = _ticks_diff
 sys.modules["time"] = fake_time
 
-# planta fisica fake del XRP
+# fake physical plant of the XRP
 class Planta:
     def __init__(self):
         self.l = 0.0
@@ -49,16 +49,16 @@ class Planta:
         now = _ticks()
         dt = (now - self.last) / 1000.0
         self.last = now
-        # yaw responde a la diferencia de esfuerzos (r-l -> CCW)
+        # yaw responds to the effort difference (r-l -> CCW)
         self.yaw += (self.eff_r - self.eff_l) * 130.0 * dt
-        # ruedas arrancan solas con esfuerzo bajo (friccion simple)
+        # wheels start moving on their own with low effort (simple friction)
         ganancia = 20.0
         self.l += (self.eff_l * ganancia - self.l) * min(1.0, dt * 8)
         self.r += (self.eff_r * ganancia - self.r) * min(1.0, dt * 8)
 
-    # --- senales para XRPLib ---
+    # --- signals for XRPLib ---
     def pos_cm(self, rpm):
-        return rpm * math.pi * 6.0 / 60.0  # cm/s acumulados abajo
+        return rpm * math.pi * 6.0 / 60.0  # accumulated cm/s down here
 
 import math
 planta = Planta()
@@ -127,93 +127,93 @@ sys.modules["XRPLib.defaults"] = defaults
 faltas = []
 
 def check(nombre, cond, detalle=""):
-    estado = "OK " if cond else "FALLA"
+    estado = "OK " if cond else "FAIL"
     print("[%s] %s %s" % (estado, nombre, detalle))
     if not cond:
         faltas.append(nombre)
 
-# ---------------- pruebas ----------------
+# ---------------- tests ----------------
 import arma1_gyro_lock as a1
 import arma2_torque_boost as a2
 import arma3_curvas as a3
 import arma4_traccion as a4
 import arma5_endgame as a5
 
-# ARMA 1: PID acotado, integral solo en zona, salida con limites
+# WEAPON 1: bounded PID, integral only in zone, limited output
 a1.gyro_lock.pid.reset()
 u = a1.gyro_lock.pid.update(10.0, 0.02)
-check("A1 salida saturada", abs(u - 0.5) < 1e-6, "u=%.3f" % u)
+check("A1 saturated output", abs(u - 0.5) < 1e-6, "u=%.3f" % u)
 a1.gyro_lock.pid.reset()
 u = a1.gyro_lock.pid.update(3.0, 0.02)
-check("A1 integral actua en zona", u > a1.KP * 3.0, "u=%.3f" % u)
+check("A1 integral acts in zone", u > a1.KP * 3.0, "u=%.3f" % u)
 a1.gyro_lock.pid.reset()
 u = a1.gyro_lock.pid.update(40.0, 0.02)
-check("A1 integral silencio fuera de zona", abs(u - 0.5) < 1e-6, "u=%.3f" % u)
+check("A1 integral silent out of zone", abs(u - 0.5) < 1e-6, "u=%.3f" % u)
 check("A1 wrap", abs(a1._wrap180(190) - (-170)) < 1e-9)
 
-# ARMA 2: atasco detectado, boost escala y libera
+# WEAPON 2: stall detected, boost scales and releases
 a2.torque_boost.enable()
 for _ in range(40):
     l, r = a2.torque_boost.feed(0.5, 0.5)
-check("A2 boost sube en atasco", a2.torque_boost.boost_l > 0.1,
+check("A2 boost climbs on stall", a2.torque_boost.boost_l > 0.1,
       "boost=%.3f" % a2.torque_boost.boost_l)
-planta.l = 19.0                       # rueda libre: rpm esperadas
+planta.l = 19.0                       # free wheel: expected rpm
 for _ in range(30):
     l, r = a2.torque_boost.feed(0.5, 0.5)
-check("A2 boost se libera", a2.torque_boost.boost_l < 0.05,
+check("A2 boost releases", a2.torque_boost.boost_l < 0.05,
       "boost=%.3f" % a2.torque_boost.boost_l)
 a2.torque_boost.disable()
 
-# ARMA 3: curva cubica: propiedades y redondeo
+# WEAPON 3: cubic curve: properties and round-trip
 check("A3 forma(1)==1", abs(a3.forma(1.0) - 1.0) < 1e-9)
 check("A3 forma(-1)==-1", abs(a3.forma(-1.0) + 1.0) < 1e-9)
-check("A3 fina cerca de cero", abs(a3.forma(0.1)) < 0.05,
+check("A3 fine near zero", abs(a3.forma(0.1)) < 0.05,
       "y=%.4f" % a3.forma(0.1))
 pasa = True
 for x in [0.2, 0.4, 0.6, 0.8]:
     if abs(a3.invertida(a3.forma(x)) - x) > 0.02:
         pasa = False
-check("A3 inversa consistente", pasa)
+check("A3 inverse consistent", pasa)
 s = a3.Suavizador(slew=10.0)
 v = 0.0
 for _ in range(3):
     v = s.update(1.0, 0.02)
-check("A3 rampa limita", v < 1.0, "v=%.3f" % v)
+check("A3 ramp limits", v < 1.0, "v=%.3f" % v)
 
-# ARMA 4: rampa + frenado activo con brake() real
+# WEAPON 4: ramp + active braking with real brake()
 eje = a4._Eje(drivetrain.left_motor)
 eje.e = 0.0
 for _ in range(3):
     e = eje.step(0.5)
-check("A4 rampa suave al arrancar", 0.0 < e < 0.5, "e=%.3f" % e)
+check("A4 soft ramp on start", 0.0 < e < 0.5, "e=%.3f" % e)
 planta.l = 40.0
 e = eje.step(0.0)
-check("A4 pulso inverso", e < -0.2, "e=%.3f" % e)
+check("A4 inverse pulse", e < -0.2, "e=%.3f" % e)
 planta.l = 1.0
 eje.step(0.0)
-check("A4 clava con brake", planta.brakes > 0)
+check("A4 nails with brake", planta.brakes > 0)
 
-# ARMA 5: reloj, odometria y endgame
+# WEAPON 5: clock, odometry and endgame
 a5.arma5.iniciar_partida()
 a5.arma5.conectar(a1.gyro_lock)
-planta.l = planta.r = 20.0             # avanza recto
+planta.l = planta.r = 20.0             # drives straight
 for _ in range(50):
     a5.arma5._odometria()
 x, y, th = a5.arma5.pose()
-check("A5 avanza en +X", x > 5.0 and abs(y) < 0.5, "x=%.1f y=%.1f" % (x, y))
+check("A5 advances on +X", x > 5.0 and abs(y) < 0.5, "x=%.1f y=%.1f" % (x, y))
 a5.arma5._t0 = _ticks() - 131000
-check("A5 antes de endgame (19 s rest.)", not a5.arma5.is_endgame())
+check("A5 before endgame (19 s left)", not a5.arma5.is_endgame())
 a5.arma5._t0 = _ticks() - 139000
-check("A5 endgame activo", a5.arma5.is_endgame())
+check("A5 endgame active", a5.arma5.is_endgame())
 a5.arma5.modo_retorno(True)
 a1.gyro_lock.set_target_here()
 a1.gyro_lock.enable()
 a5.arma5._logica_endgame()
-check("A5 reintegra rumbo vivo", abs(a1.gyro_lock.get_error()) < 20.0,
+check("A5 reintroduces live heading", abs(a1.gyro_lock.get_error()) < 20.0,
       "err=%.1f" % a1.gyro_lock.get_error())
 
 print()
 if faltas:
-    print("FALLAS:", faltas)
+    print("FAILURES:", faltas)
     sys.exit(1)
-print("TODAS LAS PRUEBAS PASAN (%d/12)" % 12)
+print("ALL TESTS PASS (%d/12)" % 12)
