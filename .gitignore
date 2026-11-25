@@ -1,6 +1,7 @@
 __pycache__/
 *.pyc
 ai_config.local.json
+ai_memory.md
 ai_token.txt
 secrets*
 .secrets/

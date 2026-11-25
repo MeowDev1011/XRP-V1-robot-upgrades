@@ -403,6 +403,10 @@ No — it's a fidelity plant (encoder inertia, IMU drift, programmed stalls, cra
 python3 ai_copilot.py analyze            # diagnose the last battery + top-3 fixes
 python3 ai_copilot.py review             # strict review of your git diff (APPROVE/FIX FIRST)
 python3 ai_copilot.py improve weapon1_gyro_lock.py   # one-level-higher proposal
+python3 ai_copilot.py explain weapon5_endgame.py    # kid-friendly deep dive
+python3 ai_copilot.py calibrate weapon1  # on-track tuning drill for one weapon
+python3 ai_copilot.py audit              # 🔍 OFFLINE constants sweep (no token)
+python3 ai_copilot.py remember "lesson"  # 🧠 team memory, reused by every task
 python3 ai_copilot.py plan               # roadmap ordered by score impact
 python3 ai_copilot.py chat               # interactive, iron rules preloaded
 python3 ai_copilot.py ask "how does trim work?"  --save answer.md
