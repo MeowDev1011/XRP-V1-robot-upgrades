@@ -105,8 +105,16 @@ jobs:
               continue
             fi
             echo "publishing release $TAG"
-            gh release create "$TAG" --repo "${{ github.repository }}" \
+            __GC__ "$TAG" --repo "${{ github.repository }}" \
               --title "$TAG -- XRP-V1 robot upgrades" \
               --notes-file "$f"
             echo "backfill $TAG exit code: $?"
+          fi
+          # attach the robot files of THAT exact tag as a zip asset
+          FILES="$(git ls-tree --name-only "$TAG" | grep -E '^(weapon|pilot_gamepad|main_match)' | tr '\n' ' ')"
+          if [ -n "$FILES" ]; then
+            git archive "$TAG" -o "/tmp/xrp-robot-${TAG}.zip" $FILES
+            gh release upload "$TAG" "/tmp/xrp-robot-${TAG}.zip" --repo "${{ github.repository }}" --clobber
+            echo "asset upload $TAG exit code: $?"
+          fi
           done
