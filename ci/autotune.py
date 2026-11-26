@@ -28,6 +28,7 @@ def eval_once(env):
     full = {**os.environ, **env}
     out = subprocess.run([sys.executable, "mass_campaign.py"],
                          capture_output=True, text=True, env=full,
+                         encoding="utf-8", errors="replace",
                          timeout=2400).stdout
     m = re.search(r"POINTS: avg=([0-9.]+)", out)
     if not m:
