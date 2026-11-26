@@ -101,20 +101,19 @@ jobs:
             git rev-parse -q --verify "refs/tags/$TAG" >/dev/null || { echo "tag $TAG missing -- skip"; continue; }
             gh release view "$TAG" --repo "${{ github.repository }}" >/dev/null 2>&1
             if [ $? -eq 0 ]; then
-              echo "release $TAG already published -- skip"
-              continue
+              echo "release $TAG already published"
+            else
+              echo "publishing release $TAG"
+              gh release create "$TAG" --repo "${{ github.repository }}" \
+                --title "$TAG -- XRP-V1 robot upgrades" \
+                --notes-file "$f"
+              echo "backfill $TAG exit code: $?"
             fi
-            echo "publishing release $TAG"
-            __GC__ "$TAG" --repo "${{ github.repository }}" \
-              --title "$TAG -- XRP-V1 robot upgrades" \
-              --notes-file "$f"
-            echo "backfill $TAG exit code: $?"
-          fi
-          # attach the robot files of THAT exact tag as a zip asset
-          FILES="$(git ls-tree --name-only "$TAG" | grep -E '^(weapon|pilot_gamepad|main_match)' | tr '\n' ' ')"
-          if [ -n "$FILES" ]; then
-            git archive "$TAG" -o "/tmp/xrp-robot-${TAG}.zip" $FILES
-            gh release upload "$TAG" "/tmp/xrp-robot-${TAG}.zip" --repo "${{ github.repository }}" --clobber
-            echo "asset upload $TAG exit code: $?"
-          fi
+            # attach the robot files of THAT exact tag as a zip asset
+            FILES="$(git ls-tree --name-only "$TAG" | grep -E '^(weapon|pilot_gamepad|main_match)' | tr '\n' ' ')"
+            if [ -n "$FILES" ]; then
+              git archive "$TAG" -o "/tmp/xrp-robot-${TAG}.zip" $FILES
+              gh release upload "$TAG" "/tmp/xrp-robot-${TAG}.zip" --repo "${{ github.repository }}" --clobber
+              echo "asset upload $TAG exit code: $?"
+            fi
           done
