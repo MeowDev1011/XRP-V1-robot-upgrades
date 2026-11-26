@@ -1,0 +1,63 @@
+# =========================================================
+# RELEASE -- Team Robots Legends (FUSAMO)
+# Publishes a GitHub Release automatically whenever a tag
+# `v*` is pushed (or the button is pressed with a tag name).
+#   - builds xrp-robot-<tag>.zip with the 8 MicroPython files
+#   - uses the notes in .github/releases/<tag>.md if present,
+#     otherwise auto-generates them from the commits
+# Usage:  git tag -a vX.Y -m "..." && git push origin vX.Y
+# =========================================================
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to publish (e.g. v2.0)"
+        required: true
+
+concurrency:
+  group: release-${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+      - name: Package the robot files
+        run: |
+          TAG="${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}"
+          zip -q "xrp-robot-${TAG}.zip" weapon*.py pilot_gamepad.py main_match.py
+          unzip -l "xrp-robot-${TAG}.zip"
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+        run: |
+          set +e
+          gh release view "$TAG" --repo "${{ github.repository }}" >/dev/null 2>&1
+          if [ $? -eq 0 ]; then
+            echo "Release $TAG already exists -- uploading assets only."
+          else
+            if [ -f ".github/releases/${TAG}.md" ]; then
+              gh release create "$TAG" --repo "${{ github.repository }}" \
+                --title "$TAG -- XRP-V1 robot upgrades" \
+                --notes-file ".github/releases/${TAG}.md"
+            else
+              gh release create "$TAG" --repo "${{ github.repository }}" \
+                --title "$TAG -- XRP-V1 robot upgrades" --generate-notes
+            fi
+          fi
+          rc=$?
+          echo "release tool exit code: $rc"
+          if [ $rc -ne 0 ]; then exit $rc; fi
+          gh release upload "$TAG" "xrp-robot-${TAG}.zip" --repo "${{ github.repository }}" --clobber
