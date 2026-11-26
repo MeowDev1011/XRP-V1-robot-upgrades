@@ -87,3 +87,25 @@ jobs:
               --title "🤖 Autotune ready to bundle: review branch $BR" \
               --body-file /tmp/issue.md
           fi
+
+      - name: Publish releases for tags whose notes exist (backfill)
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set +e
+          for f in .github/releases/v*.md; do
+            [ -e "$f" ] || continue
+            TAG="$(basename "$f" .md)"
+            git rev-parse -q --verify "refs/tags/$TAG" >/dev/null || { echo "tag $TAG missing -- skip"; continue; }
+            gh release view "$TAG" --repo "${{ github.repository }}" >/dev/null 2>&1
+            if [ $? -eq 0 ]; then
+              echo "release $TAG already published -- skip"
+              continue
+            fi
+            echo "publishing release $TAG"
+            gh release create "$TAG" --repo "${{ github.repository }}" \
+              --title "$TAG -- XRP-V1 robot upgrades" \
+              --notes-file "$f"
+            echo "backfill $TAG exit code: $?"
+          done
