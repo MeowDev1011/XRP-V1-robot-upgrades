@@ -61,7 +61,7 @@ jobs:
               tail -25 "$LOG"
             fi
             {
-              echo "## Cycle $CYCLE — $(date -u +%Y-%m-%d %H:%M UTC)"
+              echo "## Cycle $CYCLE — $(date -u '+%Y-%m-%d %H:%M UTC')"
               tail -3 "$LOG" | sed 's/^/    /'
               echo ""
               grep -E '^\|' /tmp/summary.md 2>/dev/null | tail -14 || true
