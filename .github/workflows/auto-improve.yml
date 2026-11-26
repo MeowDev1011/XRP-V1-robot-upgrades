@@ -94,6 +94,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set +e
+          git fetch origin --tags --force >/dev/null 2>&1 || true
           for f in .github/releases/v*.md; do
             [ -e "$f" ] || continue
             TAG="$(basename "$f" .md)"
