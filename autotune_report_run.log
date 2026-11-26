@@ -1,0 +1,24 @@
+BASELINE: points=56.50 park=95.0% strict=88.3%
+weapon1_gyro_lock.py.KP = 0.06 -> points=56.30 park=95.0% REJECTED
+weapon1_gyro_lock.py.KP = 0.068 -> points=57.80 park=100.0% BETTER
+weapon3_curves.py.MIX = 0.3 -> points=54.20 park=96.7% REJECTED
+weapon3_curves.py.MIX = 0.4 -> points=59.30 park=98.3% BETTER
+weapon5_endgame.py.V_RETURN = 0.8 -> points=59.30 park=98.3% BETTER
+weapon5_endgame.py.V_RETURN = 0.9 -> points=59.30 park=98.3% REJECTED
+
+== AUTOTUNE SUMMARY ==
+## 🤖 Autotune report (evidence, not vibes)
+
+| Constant | Tried | Points avg | Park %% | Verdict |
+|---|---|---|---|---|
+| (baseline) | — | 56.50 | 95.0 | — |
+| `weapon1_gyro_lock.py:KP` | 0.06 | 56.30 | 95.0 | REJECTED |
+| `weapon1_gyro_lock.py:KP` | 0.068 | 57.80 | 100.0 | BETTER |
+| ✅ **`weapon1_gyro_lock.py:KP`** | 0.064 → **0.068** | **57.80** | 100.0 | APPLIED |
+| `weapon3_curves.py:MIX` | 0.3 | 54.20 | 96.7 | REJECTED |
+| `weapon3_curves.py:MIX` | 0.4 | 59.30 | 98.3 | BETTER |
+| ✅ **`weapon3_curves.py:MIX`** | 0.35 → **0.4** | **59.30** | 98.3 | APPLIED |
+| `weapon5_endgame.py:V_RETURN` | 0.8 | 59.30 | 98.3 | BETTER |
+| `weapon5_endgame.py:V_RETURN` | 0.9 | 59.30 | 98.3 | REJECTED |
+| ✅ **`weapon5_endgame.py:V_RETURN`** | 0.85 → **0.8** | **59.30** | 98.3 | APPLIED |
+RESULT: 3 improvement(s) applied
