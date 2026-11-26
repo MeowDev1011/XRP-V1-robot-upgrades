@@ -32,8 +32,12 @@ jobs:
       - name: Autotune (math matches + candidates)
         id: tune
         run: |
+          set +e
           python3 ci/autotune.py > /tmp/autotune_run.log 2>&1
+          rc=$?
           tee autotune_report_run.log < /tmp/autotune_run.log
+          echo "autotune exit code: $rc"
+          if [ "$rc" -ne 0 ]; then exit "$rc"; fi
           echo "applied=$(cat /tmp/autotune_applied 2>/dev/null || echo no)" >> "$GITHUB_OUTPUT"
 
       - name: Attach the tuning report
@@ -47,6 +51,7 @@ jobs:
           name: autotune-logs
           path: |
             autotune_report_run.log
+            /tmp/autotune_run.log
             /tmp/autotune_report.md
           retention-days: 90
         continue-on-error: true
