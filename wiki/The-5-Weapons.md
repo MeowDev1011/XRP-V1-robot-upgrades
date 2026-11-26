@@ -78,8 +78,8 @@ the other weapons and re-tunes them LIVE, always inside safe clamps:
   pilot: it only tunes the assist **around the sticks**.
 - Every adaptation decays back to the battery-proven base constants.
 - `brain.snapshot()` gives live telemetry (kp/kd/boost/drift/stall) for the console.
-- Together with the laptop [AI Copilot](AI-Copilot) it forms the full loop:
-  **laptop brain plans off-line ↔ on-board brain adapts on-line.**
+- Between matches the offline [Robot Coach](Coach) audits and drills the team:
+  **Coach plans off-line ↔ on-board brain adapts on-line.**
 
 ---
 

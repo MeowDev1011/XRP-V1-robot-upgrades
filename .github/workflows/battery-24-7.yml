@@ -3,8 +3,10 @@
 # Plays the ENTIRE robot package around the clock:
 #   • each run is a ~5 h 54 min marathon of back-to-back batteries
 #   • then it PAUSES 1 minute and RE-TRIGGERS itself (24/7 chain)
-#   • a daily cron is kept only as a safety re-arm if the chain
-#     ever dies; pushes to main and the manual button also launch it
+#   • a daily cron is kept only as a safety re-arm if the chain ever dies;
+#     pushes DO NOT launch it (a push would only queue a confusing
+#     pending/cancelled marathon behind the live one) — use the
+#     "Run workflow" button to fire it manually
 # If a metric drops below its threshold the cycle is marked RED in the
 # run summary; artifacts keep every cycle log (90 days) so the team can
 # review the cause and EDIT pilot/weapons (never the tests).
@@ -12,10 +14,8 @@
 name: batteries-24-7
 
 on:
-  push:
-    branches: [main]
   schedule:
-    - cron: "40 0,6,12,18 * * *"   # backbone re-arm every 6 h (UTC): even if the
+    - cron: "40 3 * * *"           # safety re-arm once a day (UTC): even if the
                                    # self-trigger ever fails, a new marathon starts soon
   workflow_dispatch: {}            # "Run workflow" button to fire it now
 

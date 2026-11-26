@@ -44,7 +44,7 @@
 10. [🛠️ Calibration guide](#%EF%B8%8F-calibration-guide)
 11. [📚 Lessons from 800+ simulated matches](#-lessons-from-800-simulated-matches)
 12. [❓ FAQ](#-faq)
-13. [🧠 AI Copilot (generic)](#-ai-copilot-generic-platform-agnostic)
+13. [🎽 Robot Coach (offline)](#-robot-coach-100-offline)
 14. [📖 Wiki](#-wiki)
 14. [📖 Wiki](#-wiki)
 
@@ -112,10 +112,9 @@ The robot **thinks by itself**, every 20 ms tick, with **zero internet and zero 
 - **HOME**: during the endgame return it keeps the heading gain at its sharpest.
 - It NEVER touches the motors (Weapon 4 is still the only writer) and NEVER overrides the pilot:
   it only tunes the assist **around the sticks**, always inside safe clamps.
-- On the laptop, the 🧠 [AI Copilot](#-ai-copilot-generic-platform-agnostic) plans off-line;
-  on the board, this brain adapts on-line. Together: a robot that corrects, thinks and improves
-  its own movements — with the API never touching the match.
-
+- On the laptop between matches, the 🎽 [Robot Coach](#-robot-coach-100-offline) audits, explains and
+  plans off-line; on the board, this brain adapts on-line. Together: a robot that corrects, thinks and
+  improves its own movements — with zero internet anywhere near the match.
 ---
 
 ## 🎮 How the match is played
@@ -395,47 +394,34 @@ Any official firmware ≥ 1.0.2 with XRPLib. Bluetooth gamepad support needs `XR
 
 **Q: Is the simulator identical to the real robot?**
 No — it's a fidelity plant (encoder inertia, IMU drift, programmed stalls, crash jolts) used to hunt bugs before they reach the metal. Real-track calibration is still mandatory, in the 🛠️ order above.
+## 🎽 Robot Coach (100% offline)
 
----
-
-## 🧠 AI Copilot (generic, platform-agnostic)
-
-🤝 The repo ships with an AI teammate for the developers: **`ai_copilot.py`**. It is
-**generic**: one config file with **THREE fields** — `base_url`, `api_path`, `api_token`
-(+ `model`) — with the values of ANY OpenAI-compatible provider you choose.
+🎽 The repo ships with a **Robot Coach** (`coach.py`) for the developers. There is
+**NO AI API anymore**: the Coach needs **no token, no config, no internet, no
+dependencies** — pure Python 3 stdlib. It works today, works tomorrow, works at the
+venue 5 minutes before a match.
 
 > 🧠 **Who thinks during the match?** The ROBOT itself: **Weapon 6 (the brain)** adapts
-> KP/KD/boost on-board at 50 Hz with zero internet and zero API. The copilot is the
-> **laptop brain**: it plans and reviews between matches, and its proposals reach the
-> robot as reviewed code/constants. The API NEVER runs on the board and NEVER during
-> a match — the venue has no internet and the board must never wait on a network.
-
-```jsonc
-// ai_config.json  (or copy to ai_config.local.json — gitignored, token cannot leak)
-{
-  "base_url":  "<your provider base URL>",
-  "api_path":  "<your provider API path>",
-  "api_token": "<your token>",
-  "model":     "<your model>"
-}
-```
+> KP/KD/boost on-board at 50 Hz with zero internet and zero API. The Coach is the
+> **between-matches teammate**: it audits constants, trains the pilot, reads the battery
+> logs and keeps the team memory of lessons learned. Nothing runs on the board during a
+> match except the weapons — the venue has no internet and the board never waits on a network.
 
 ```bash
-python3 ai_copilot.py analyze            # diagnose the last battery + top-3 fixes
-python3 ai_copilot.py review             # strict review of your git diff (APPROVE/FIX FIRST)
-python3 ai_copilot.py improve weapon1_gyro_lock.py   # one-level-higher proposal
-python3 ai_copilot.py explain weapon5_endgame.py    # kid-friendly deep dive
-python3 ai_copilot.py calibrate weapon1  # on-track tuning drill for one weapon
-python3 ai_copilot.py audit              # 🔍 OFFLINE constants sweep (no token)
-python3 ai_copilot.py remember "lesson"  # 🧠 team memory, reused by every task
-python3 ai_copilot.py plan               # roadmap ordered by score impact
-python3 ai_copilot.py chat               # interactive, iron rules preloaded
-python3 ai_copilot.py ask "how does trim work?"  --save answer.md
+python3 coach.py audit                    # 🔍 safe-range sweep of all 6 weapons + wiring + iron rules
+python3 coach.py explain weapon1          # 🎈 kid-friendly deep dive of one weapon
+python3 coach.py calibrate weapon1        # 🎯 step-by-step on-track tuning drill
+python3 coach.py report cycle-3.txt       # 📊 summarize a battery/marathon cycle log
+python3 coach.py checklist                # ✅ pre-match checklist (print and tick)
+python3 coach.py remember "lesson"        # 🧠 team memory -> coach_memory.md
+python3 coach.py memory                   # 📖 read the lessons the team saved
+python3 coach.py plan                     # 🗺 what to improve next, ordered by score impact
 ```
 
-- 🧱 Stdlib only (`urllib`) — no extra dependencies. Runs where YOU launch it (laptop/PC).
-- 🚫 **It does not run in the cloud workflows** (the team decided: no API spend). It only runs when a developer executes it deliberately.
-- 🙅 The copilot proposes; **humans + the battery** decide. It never edits files autonomously and it never touches the test harnesses or F-metrics.
+- 🧰 **Stdlib only** — copy `coach.py` anywhere and it just runs. No API key can leak because there is none.
+- 🚫 **It does not run in the cloud workflows and never during a match.** A developer runs it deliberately, between matches.
+- 🙅 The Coach proposes; **humans + the battery** decide. It never edits files autonomously and it never touches the test harnesses or F-metrics.
+- 🧠 `audit` enforces the iron rules: safe constant ranges, no blocking `sleep()`, no one-button macros, and Weapon 4 as the ONLY `set_effort` writer.
 
 ---
 

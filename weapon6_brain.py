@@ -15,9 +15,9 @@
 #
 # It NEVER touches the motors (Weapon 4 is still the only
 # writer) and NEVER overrides the pilot: it only tunes the
-# assist AROUND the sticks. With the copilot on the laptop
-# it forms the full loop: laptop brain plans off-line,
-# this on-board brain adapts on-line during the match.
+# assist AROUND the sticks. Between matches the OFFLINE Robot
+# Coach (coach.py, no API) audits and drills the team; this
+# on-board brain adapts on-line during the match.
 # ---------------------------------------------------------
 # Usage:
 #   from weapon6_brain import brain

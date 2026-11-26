@@ -1,9 +1,0 @@
-{
-  "_comment": "🧠 AI Copilot config — GENERIC, platform-agnostic. Fill the THREE fields (base_url, api_path, api_token) with the values of YOUR provider (OpenAI-compatible). For local safety while pushing, copy this file to ai_config.local.json and fill that one instead (it is gitignored); you can also fill this file directly — just never push your token.",
-  "base_url": "",
-  "api_path": "",
-  "api_token": "",
-  "model": "",
-  "max_tokens": 1800,
-  "temperature": 0.4
-}

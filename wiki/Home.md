@@ -28,7 +28,7 @@
 | 🚑 [Troubleshooting](Troubleshooting) | Symptoms, causes and fixes for the most common failures |
 | 🎛️ [Calibration](Calibration) | On-track drills to tune every weapon |
 | 🤝 [Collaborating](Collaborating) | Branches, PRs, the autonomous improvement workflow, do's & don'ts |
-| 🧠 [AI Copilot](AI-Copilot) | The generic copilot (three config fields): analyze results, review PRs, plan, improve — you only paste your token |
+| 🎽 [Robot Coach](Coach) | 100% offline teammate (NO API, no token): audit, explain, calibrate, report, checklist, team memory |
 | 🌐 [Documentation Website](Documentation-Website) | The `docs/` HTML site and the 3D sandbox (DRIVE / SUMO / SOCCER) |
 
 ---
