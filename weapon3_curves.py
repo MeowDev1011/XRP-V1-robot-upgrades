@@ -23,7 +23,7 @@
 # ------------------------------------------------------------
 # ON-TRACK CALIBRATION
 # ------------------------------------------------------------
-MIX        = 0.35   # 0 = pure cubic (surgical), 1 = linear (aggressive)
+MIX        = 0.4   # 0 = pure cubic (surgical), 1 = linear (aggressive)
 MIX_PRECISION = 0.12   # precision mode (BUMPER_L held)
 DEADBAND   = 0.04   # smaller orders move nothing (filters stick noise)
 SLEW_DEFAULT   = 3.0    # effort per second: input ramp
