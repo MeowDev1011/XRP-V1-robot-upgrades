@@ -23,7 +23,7 @@
 | 🤖 [What Is This Robot](What-Is-This-Robot) | The XRP hardware, its sensors and our team |
 | 📥 [Uploading Files](Uploading-Files) | Every way to send code to the robot: XRPCode, mpremote, Thonny, Copa Robótica |
 | 🎮 [Controls](Controls) | Gamepad map, pilot modes and priority rules |
-| ⚔️ [The 5 Weapons](The-5-Weapons) | Each assist system, its constants and purpose |
+| ⚔️ [The 6 Weapons](The-5-Weapons) | The 5 assist systems + 🧠 the on-board brain, constants and purpose |
 | 🧪 [Testing and Simulation](Testing-and-Simulation) | verify · stress · mass_campaign · games + the 24/7 CI battery |
 | 🚑 [Troubleshooting](Troubleshooting) | Symptoms, causes and fixes for the most common failures |
 | 🎛️ [Calibration](Calibration) | On-track drills to tune every weapon |

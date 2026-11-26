@@ -101,7 +101,8 @@ P1_THRESHOLD = 3.0
 P2_THRESHOLD = 12.0
 
 _MODULOS = ("weapon3_curves", "weapon2_torque_boost", "weapon4_traction",
-            "weapon5_endgame", "weapon1_gyro_lock", "pilot_gamepad")
+            "weapon5_endgame", "weapon1_gyro_lock", "weapon6_brain",
+            "pilot_gamepad")
 
 
 def _reload():
@@ -230,6 +231,13 @@ def new_match(seed, MOD):
     A2.torque_boost.enable()
     endgame.connect(gyro)
     endgame.set_return(VARIANT != "NO_ASSIST")
+    BRAIN = None
+    if VARIANT != "NO_ASSIST":
+        # W6 on-board brain: adapts KP/KD/BOOST live (assist only;
+        # NO_ASSIST stays as the untouched baseline)
+        B6 = MOD["weapon6_brain"]
+        B6.brain.wire(gyro, A2.torque_boost, endgame, console)
+        BRAIN = B6.brain
     A5.V_RETURN = 0.85
     imu = SIM.IMU
     imu.reset_yaw()
@@ -331,6 +339,8 @@ def new_match(seed, MOD):
 
         console._cycle()
         gyro._tick()
+        if BRAIN is not None:
+            BRAIN.step()
         tb.step()
         endgame._odometry()
         endgame._endgame_logic()

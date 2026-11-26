@@ -239,6 +239,7 @@ import weapon2_torque_boost as A2
 import weapon3_curves as A3
 import weapon4_traction as A4
 import weapon5_endgame as A5
+import weapon6_brain as B6
 import pilot_gamepad as MAIN
 
 # ---------- TEAM PARAMETERS (overridable, as on the track) ----------

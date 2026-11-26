@@ -30,7 +30,7 @@
 
 0. [🌐 Documentation website + 3D sandbox](#-documentation-website--3d-sandbox)
 1. [⚡ What is this?](#-what-is-this)
-2. [⚔️ The 5 Secret Weapons](#%EF%B8%8F-the-5-secret-weapons)
+2. [⚔️ The 6 Secret Weapons](#%EF%B8%8F-the-6-secret-weapons)
 3. [🎮 How the match is played](#-how-the-match-is-played)
 4. [🔗 Control chain](#-control-chain)
 5. [🔌 Installation on the robot (3 ways)](#-installation-on-the-robot-3-ways)
@@ -55,7 +55,7 @@
 Beyond this README, the project ships with two extra layers of docs:
 
 - **🌍 [docs/index.html](docs/index.html)** — a self-contained website (HTML + CSS + JS, no build step, works offline) with animated hero, cards for every weapon, full game rules and a **Three.js 3D sandbox** where you can play the three simulation games in the browser: 🚗 **DRIVE** (individual driving circuit), 🤼 **SUMO** (1v1 and 2v2 push-out) and ⚽ **SOCCER** (1v1 and 2v2). 🏟️ Iron Acres is documented but not sandboxed (it needs the full field model).
-- **📖 [GitHub Wiki](https://github.com/MeowDev1011/XRP-V1-robot-upgrades/wiki)** — many pages with emojis: what this robot is, installation, how to upload files, controls, the 5 weapons, testing & simulation, troubleshooting, calibration, collaboration guide.
+- **📖 [GitHub Wiki](https://github.com/MeowDev1011/XRP-V1-robot-upgrades/wiki)** — many pages with emojis: what this robot is, installation, how to upload files, controls, the 6 weapons, testing & simulation, troubleshooting, calibration, collaboration guide.
 
 ## ⚡ What is this?
 
@@ -70,11 +70,11 @@ This repository contains the **master software** for our XRP robot in the **XRP 
 | 🚫 No one-button fixed macros | Every assist is a **continuous, real-time closed loop**; buttons only toggle assists |
 | 🎯 Easy to integrate with XRPCode blocks | Self-contained modules, importable line-by-line |
 
-The match is driven with a **physical gamepad** (Xbox/Logitech) connected to the driving station; the XRP receives axes and buttons over **Bluetooth via the official XPP protocol at 50 Hz** (`XRPLib.gamepad`). The pilot is a kid who is great at video games but does not have adult-level motor precision — all 5 weapons exist to inflate the kid's precision without ever fighting the pilot's intent.
+The match is driven with a **physical gamepad** (Xbox/Logitech) connected to the driving station; the XRP receives axes and buttons over **Bluetooth via the official XPP protocol at 50 Hz** (`XRPLib.gamepad`). The pilot is a kid who is great at video games but does not have adult-level motor precision — all 6 weapons exist to inflate the kid's precision without ever fighting the pilot's intent.
 
 ---
 
-## ⚔️ The 5 Secret Weapons
+## ⚔️ The 6 Secret Weapons
 
 ### 🔒 Weapon 1 — Gyro-Lock PID (Heading Autocorrect / Anti-Spin)
 A real-time PID using `imu.get_yaw()` that **locks the heading** whenever the robot should go straight or was not ordered to turn.
@@ -101,8 +101,20 @@ Owns the motors (single final writer):
 ### ⏱️ Weapon 5 — Auto-Endgame (Clock + Home Odometry)
 - Counts the exact **150,000 ms** of the match.
 - Maintains **relative position X, Y, θ** via encoder + IMU fusion (dead-reckoning odometry).
-- When **12 seconds remain** and sticks are released, a live assist returns the robot home (`V_RETORNO=0.85`).
+- When **12 seconds remain** and sticks are released, a live assist returns the robot home (`V_RETURN=0.85`).
 - Final 2 seconds: guaranteed zero command once inside 8 cm → the **park is locked in**.
+
+### 🧠 Weapon 6 — The Brain (on-board adaptive intelligence)
+The robot **thinks by itself**, every 20 ms tick, with **zero internet and zero API**:
+- **GAIN**: sustained cruise drift detected → raises the gyro-lock `KP` (and decays it back).
+- **DAMP**: a crash/spin spike → extra `KD` damping for 2 s (kills post-crash spins = P1).
+- **GRIP**: repeated wheel stalls → raises the torque boost ceiling (slippery/heavy ground).
+- **HOME**: during the endgame return it keeps the heading gain at its sharpest.
+- It NEVER touches the motors (Weapon 4 is still the only writer) and NEVER overrides the pilot:
+  it only tunes the assist **around the sticks**, always inside safe clamps.
+- On the laptop, the 🧠 [AI Copilot](#-ai-copilot-generic-platform-agnostic) plans off-line;
+  on the board, this brain adapts on-line. Together: a robot that corrects, thinks and improves
+  its own movements — with the API never touching the match.
 
 ---
 
@@ -150,6 +162,7 @@ weapon4_traction.py  (ramp + active brake)       ← Weapon 4  ⟵ ONLY writer t
    DRIVETRAIN.set_effort(l, r)
 
 weapon5_endgame.py (clock + odometry + live return)   ← Weapon 5 (20 Hz task)
+weapon6_brain.py (adaptive KP/KD/BOOST, on-board)      ← Weapon 6 (50 Hz thought)
 ```
 
 ---
@@ -157,7 +170,7 @@ weapon5_endgame.py (clock + odometry + live return)   ← Weapon 5 (20 Hz task)
 ## 🔌 Installation on the robot (3 ways)
 
 > **Goal in all methods:** copy the software to the **root of the XRP's filesystem**
-> (`main_match.py` + the 5 weapons + `pilot_gamepad.py`), then run
+> (`main_match.py` + the 6 weapons + `pilot_gamepad.py`), then run
 > `main_match.py` once before the match starts.
 
 **The 8 files to load:**
@@ -167,7 +180,8 @@ main_match.py          ← entry point (run this one)
 pilot_gamepad.py        ← gamepad driver
 weapon1_gyro_lock.py        weapon2_torque_boost.py
 weapon3_curves.py           weapon4_traction.py
-weapon5_endgame.py         curvas.py (if your copy references it)
+weapon5_endgame.py          weapon6_brain.py
+curvas.py (if your copy references it)
 ```
 
 ### Method 1 — XRPCode (official web editor) 🥇 *recommended*
@@ -200,6 +214,7 @@ mpremote cp weapon2_torque_boost.py :/
 mpremote cp weapon3_curves.py :/
 mpremote cp weapon4_traction.py :/
 mpremote cp weapon5_endgame.py :/
+mpremote cp weapon6_brain.py :/
 
 # Open the REPL and start the match software
 mpremote
@@ -389,6 +404,12 @@ No — it's a fidelity plant (encoder inertia, IMU drift, programmed stalls, cra
 **generic**: one config file with **THREE fields** — `base_url`, `api_path`, `api_token`
 (+ `model`) — with the values of ANY OpenAI-compatible provider you choose.
 
+> 🧠 **Who thinks during the match?** The ROBOT itself: **Weapon 6 (the brain)** adapts
+> KP/KD/boost on-board at 50 Hz with zero internet and zero API. The copilot is the
+> **laptop brain**: it plans and reviews between matches, and its proposals reach the
+> robot as reviewed code/constants. The API NEVER runs on the board and NEVER during
+> a match — the venue has no internet and the board must never wait on a network.
+
 ```jsonc
 // ai_config.json  (or copy to ai_config.local.json — gitignored, token cannot leak)
 {
@@ -430,7 +451,7 @@ kept in the repo under [`wiki/`](wiki/README.md) so every edit is versioned:
 | 🤖 [What is this robot?](https://github.com/MeowDev1011/XRP-V1-robot-upgrades/wiki/What-Is-This-Robot) | XRP hardware, sensors, who is Team Robots Legends |
 | 📥 [Upload files](https://github.com/MeowDev1011/XRP-V1-robot-upgrades/wiki/Uploading-Files) | XRPCode / mpremote / Thonny / Copa Robótica, step by step |
 | 🎮 [Controls](https://github.com/MeowDev1011/XRP-V1-robot-upgrades/wiki/Controls) | Gamepad map and pilot modes |
-| ⚔️ [The 5 weapons](https://github.com/MeowDev1011/XRP-V1-robot-upgrades/wiki/The-5-Weapons) | Each system, constants and how to tune it |
+| ⚔️ [The 6 weapons](https://github.com/MeowDev1011/XRP-V1-robot-upgrades/wiki/The-5-Weapons) | Each system (5 assist + 🧠 brain), constants and how to tune it |
 | 🧪 [Testing & simulation](https://github.com/MeowDev1011/XRP-V1-robot-upgrades/wiki/Testing-and-Simulation) | verify / stress / mass_campaign / games explained |
 | 🚑 [Troubleshooting](https://github.com/MeowDev1011/XRP-V1-robot-upgrades/wiki/Troubleshooting) | Common failures and fixes |
 | 🤝 [Collaborating](https://github.com/MeowDev1011/XRP-V1-robot-upgrades/wiki/Collaborating) | Branches, PRs, the 24/7 workflows, how to contribute |

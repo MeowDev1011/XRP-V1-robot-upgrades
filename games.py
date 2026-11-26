@@ -160,6 +160,11 @@ def match(mode, seed, MOD):
     A2.torque_boost.enable()
     endgame.connect(gyro)
     endgame.set_return(False)          # in games there is no endgame
+    B6 = MOD.get("weapon6_brain")
+    BRAIN = None
+    if B6 is not None:
+        BRAIN = B6.brain
+        BRAIN.wire(gyro, A2.torque_boost, endgame, console)
     imu = SIM.IMU
     imu.reset_yaw()
     console.connect(pad)
@@ -638,6 +643,8 @@ def match(mode, seed, MOD):
 
         console._cycle()
         gyro._tick()
+        if BRAIN is not None:
+            BRAIN.step()
         tb.step()
         endgame._odometry()
         endgame._endgame_logic()

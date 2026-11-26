@@ -9,6 +9,17 @@
 
 ---
 
+## 🧠 Who thinks during the match? (IMPORTANT)
+
+**The ROBOT thinks alone.** On the board lives **Weapon 6 — [the brain](The-5-Weapons)**:
+it re-tunes the weapons 50 times per second with **zero internet and zero API**. The
+copilot is the **laptop brain**: it plans, reviews and proposes **between matches**, and
+its proposals reach the robot as reviewed code. The API **NEVER runs on the board and
+NEVER during a match** — the venue has no internet, and the board must never wait on
+a network.
+
+---
+
 ## 🔑 Setup (60 seconds, THREE fields — GENERIC, provider-agnostic)
 
 Open **`ai_config.json`** (or copy it to `ai_config.local.json`, which is gitignored and

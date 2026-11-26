@@ -61,6 +61,28 @@
 
 ---
 
+## 🧠 Weapon 6 — The Brain (on-board adaptive intelligence)
+
+The robot **thinks by itself**, every 20 ms tick, with **zero internet and zero API**
+(the venue has none — that is iron rule #1). `weapon6_brain.py` watches the pilot and
+the other weapons and re-tunes them LIVE, always inside safe clamps:
+
+| Thought | Trigger | Action |
+|---|---|---|
+| 🎯 **GAIN** | sustained cruise drift (EMA error > 6°) | raises W1 `KP` (0.064 → up to 0.072), decays back |
+| 🛑 **DAMP** | crash/spin spike (error jump > 10°) | extra W1 `KD` (0.0055 → 0.0085) for 2 s — kills P1 spins |
+| 💪 **GRIP** | repeated wheel stalls (>5% of ticks) | raises W2 `BOOST_MAX` (0.35 → up to 0.45), decays back |
+| 🏠 **HOME** | endgame return active (last 12 s) | keeps `KP ≥ 0.066` + damping for the sharpest arrival |
+
+- It NEVER touches the motors (Weapon 4 stays the only writer) and NEVER overrides the
+  pilot: it only tunes the assist **around the sticks**.
+- Every adaptation decays back to the battery-proven base constants.
+- `brain.snapshot()` gives live telemetry (kp/kd/boost/drift/stall) for the console.
+- Together with the laptop [AI Copilot](AI-Copilot) it forms the full loop:
+  **laptop brain plans off-line ↔ on-board brain adapts on-line.**
+
+---
+
 ## 🔗 How the chain is wired
 
 ```
@@ -70,6 +92,7 @@ gamepad 50 Hz → pilot_console (mode decision)
                             → weapon1_gyro_lock (differential PID)
                                 → weapon4_traction  ⟶ DRIVETRAIN.set_effort (ONLY writer)
 weapon5_endgame  ⟶ side loop: clock + odometry + (optionally) return commands
+weapon6_brain    ⟶ side loop: watches everything, re-tunes KP/KD/BOOST live
 ```
 
 Every weapon has its own `verify.py` unit checks and stress scenarios — see
