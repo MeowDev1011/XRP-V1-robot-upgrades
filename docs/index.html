@@ -11,7 +11,19 @@
 
 <nav>
   <div class="wrap">
-    <div class="logo">🤖 Robots Legends <span>// XRP</span></div>
+    <div class="logo">
+      <svg class="navlogo" width="30" height="30" viewBox="0 0 48 48" aria-hidden="true">
+        <rect x="8" y="14" width="32" height="24" rx="7" fill="#4f8cff"/>
+        <rect x="14" y="20" width="20" height="8" rx="4" fill="#0b1020"/>
+        <circle class="eyeL" cx="20" cy="24" r="2.4" fill="#22d3a8"/>
+        <circle class="eyeR" cx="28" cy="24" r="2.4" fill="#22d3a8"/>
+        <line x1="24" y1="14" x2="24" y2="7" stroke="#ffcb47" stroke-width="2.4"/>
+        <circle class="navled" cx="24" cy="5" r="3" fill="#ff4757"/>
+        <rect x="4" y="24" width="5" height="11" rx="2.5" fill="#0d0d12"/>
+        <rect x="39" y="24" width="5" height="11" rx="2.5" fill="#0d0d12"/>
+      </svg>
+      Robots Legends <span>// XRP</span>
+    </div>
     <div class="links">
       <a href="#weapons">⚔️ Weapons</a>
       <a href="#match">🎮 Match</a>
@@ -32,14 +44,38 @@
     <span style="bottom:28%;right:16%;animation-delay:-1s;">🏆</span>
     <span style="top:55%;left:4%;animation-delay:-5s;">🧲</span>
   </div>
-  <div class="wrap">
-    <span class="pill">🧪 100% simulated &amp; verified · MicroPython · runs ON the board</span>
-    <h1>Robot legends are<br>built near the metal.</h1>
-    <p class="sub">
-      Master software of <b>Team Robots Legends</b> (FUSAMO) for the XRP
-      competition <b>⚔️ Iron Acres</b> — five secret assist weapons for a real
-      gamepad, one kid pilot, zero blocking code, 150,000 ms of pure teamwork.
-    </p>
+  <div class="wrap hero-grid">
+    <div>
+      <span class="pill">🧪 100% simulated &amp; verified · MicroPython · runs ON the board</span>
+      <h1>Robot legends are<br>built near the metal.</h1>
+      <p class="sub">
+        Master software of <b>Team Robots Legends</b> (FUSAMO) for the XRP
+        competition <b>⚔️ Iron Acres</b> — six secret assist weapons for a real
+        gamepad, one kid pilot, zero blocking code, 150,000 ms of pure teamwork.
+      </p>
+    </div>
+    <svg class="hero-robot" width="300" height="330" viewBox="0 0 240 264" aria-hidden="true">
+      <!-- antenna -->
+      <line x1="120" y1="54" x2="120" y2="18" stroke="#ffcb47" stroke-width="5" stroke-linecap="round"/>
+      <circle class="hr-led" cx="120" cy="14" r="9" fill="#ff4757"/>
+      <!-- head -->
+      <rect x="66" y="54" width="108" height="62" rx="18" fill="#4f8cff"/>
+      <rect x="80" y="68" width="80" height="34" rx="14" fill="#0b1020"/>
+      <circle class="hr-eye" cx="103" cy="85" r="8" fill="#22d3a8"/>
+      <circle class="hr-eye hr-eye2" cx="137" cy="85" r="8" fill="#22d3a8"/>
+      <!-- body -->
+      <rect x="46" y="122" width="148" height="88" rx="20" fill="#2763d8"/>
+      <rect x="86" y="140" width="68" height="30" rx="10" fill="#0b1020"/>
+      <rect class="hr-gauge" x="92" y="146" width="40" height="7" rx="3.5" fill="#22d3a8"/>
+      <rect class="hr-gauge hr-gauge2" x="92" y="158" width="26" height="7" rx="3.5" fill="#ffcb47"/>
+      <text x="120" y="200" text-anchor="middle" font-size="13" fill="#bcd0ff" font-family="monospace">TEAM ROBOTS LEGENDS</text>
+      <!-- arms -->
+      <rect x="22" y="132" width="16" height="52" rx="8" fill="#1c4fa8"/>
+      <rect x="202" y="132" width="16" height="52" rx="8" fill="#1c4fa8"/>
+      <!-- wheels -->
+      <g class="hr-wheel" style="transform-origin:62px 224px"><circle cx="62" cy="224" r="30" fill="#0d0d12"/><circle cx="62" cy="224" r="11" fill="#ffcb47"/></g>
+      <g class="hr-wheel" style="transform-origin:178px 224px"><circle cx="178" cy="224" r="30" fill="#0d0d12"/><circle cx="178" cy="224" r="11" fill="#ffcb47"/></g>
+    </svg>
     <div class="badges">
       <img class="badge-img" src="https://img.shields.io/badge/match-150s-blueviolet" alt="match length">
       <img class="badge-img" src="https://img.shields.io/badge/loop-50%20Hz%20non--blocking-brightgreen" alt="50 Hz">
@@ -62,10 +98,11 @@
       <p>The <b class="ok">XRP</b> (Experiential Robotics Platform, by SparkFun · WPI · DEKA · FIRST) is a
       Pico&nbsp;W powered robot with encoders, an IMU, an ultrasonic sensor and servos. This repository holds
       the <b>master software</b> our team runs during matches: a continuous 50 Hz console driven by a real
-      gamepad, wrapped by five assist weapons that correct, boost and protect the pilot.</p>
+      gamepad, wrapped by six assist weapons — five specialists plus an on-board <b>brain</b> — that correct,
+      boost, think and protect the pilot.</p>
     </div>
     <div class="stats reveal">
-      <div class="stat"><b>5</b><span>secret weapons</span></div>
+      <div class="stat"><b>6</b><span>secret weapons</span></div>
       <div class="stat"><b>50 Hz</b><span>gamepad control loop</span></div>
       <div class="stat"><b>150 s</b><span>match clock (ms-exact)</span></div>
       <div class="stat"><b>94.7%</b><span>STRICT park rate</span></div>
@@ -77,47 +114,69 @@
 <section id="weapons">
   <div class="wrap">
     <div class="sec-head reveal">
-      <h2>⚔️ The 5 Secret Weapons</h2>
+      <h2>⚔️ The 6 Secret Weapons</h2>
       <p>One weapon at a time builds, one match at a time improves. All weapons are continuous, sensor-driven
       assistance — <b>no one-button macros</b>, <b>no blocking waits</b>, everything runs on the board.</p>
     </div>
     <div class="cards">
-      <div class="card reveal"><div class="wnum">1</div>
+      <div class="card reveal"><div class="wnum">
+          <svg width="34" height="34" viewBox="0 0 36 36"><circle cx="18" cy="18" r="13" fill="none" stroke="#22d3a8" stroke-width="2.6"/><circle cx="18" cy="18" r="5.5" fill="none" stroke="#ffcb47" stroke-width="2.6"/><line x1="18" y1="1" x2="18" y2="9" stroke="#22d3a8" stroke-width="2.6"/><line x1="18" y1="27" x2="18" y2="35" stroke="#22d3a8" stroke-width="2.6"/><line x1="1" y1="18" x2="9" y2="18" stroke="#22d3a8" stroke-width="2.6"/><line x1="27" y1="18" x2="35" y2="18" stroke="#22d3a8" stroke-width="2.6"/><circle class="svg-blink" cx="18" cy="18" r="2" fill="#ff4757"/></svg>
+        </div>
         <h3>🎯 Gyro-Lock PID</h3>
         <p>A real-time PID (<span class="k">Kp, Ki, Kd</span>) on <code>imu.get_yaw()</code> that locks the heading
         whenever you drive straight and instantly kills spins, drifts and collisions.</p>
         <ul><li><span class="k">File</span>: weapon1_gyro_lock.py</li>
             <li><span class="k">Tune</span>: Kp=0.064 · Ki=0.06 · Kd=0.0055 · MIN_EFFORT=0.14</li></ul>
       </div>
-      <div class="card reveal"><div class="wnum">2</div>
+      <div class="card reveal"><div class="wnum">
+          <svg width="34" height="34" viewBox="0 0 36 36"><polygon points="20,2 8,20 16,20 13,34 28,14 19,14" fill="#ffcb47"/></svg>
+        </div>
         <h3>💪 Torque Boost</h3>
         <p>Compares desired vs encoder-measured speed. Detects stalls at low speed and pours in extra torque,
         then releases it the instant the wheels flow again.</p>
         <ul><li><span class="k">File</span>: weapon2_torque_boost.py</li>
             <li><span class="k">Tune</span>: STALL_RATIO=0.4 · BOOST_MAX=0.35 · BOOST_STEP=0.012</li></ul>
       </div>
-      <div class="card reveal"><div class="wnum">3</div>
+      <div class="card reveal"><div class="wnum">
+          <svg width="34" height="34" viewBox="0 0 36 36"><path d="M2 30 C 12 30, 14 6, 34 6" fill="none" stroke="#4f8cff" stroke-width="3" stroke-linecap="round"/><path d="M2 34 L 34 34" stroke="#22d3a8" stroke-width="2" stroke-dasharray="3 3"/></svg>
+        </div>
         <h3>🕹️ Cubic Curves</h3>
         <p>Cubic response curves turn raw stick input into surgical millimetre moves while keeping 100%
         top speed for long runs.</p>
         <ul><li><span class="k">File</span>: weapon3_curves.py</li>
             <li><span class="k">Tune</span>: MIX=0.35 · MIX_PRECISION=0.12</li></ul>
       </div>
-      <div class="card reveal"><div class="wnum">4</div>
+      <div class="card reveal"><div class="wnum">
+          <svg width="34" height="34" viewBox="0 0 36 36"><circle cx="18" cy="18" r="14" fill="none" stroke="#0d0d12" stroke-width="6"/><circle cx="18" cy="18" r="14" fill="none" stroke="#ff6b81" stroke-width="2.4" stroke-dasharray="6 4"/><circle cx="18" cy="18" r="4" fill="#ffcb47"/></svg>
+        </div>
         <h3>🛞 Traction &amp; Brake</h3>
         <p>Ramps launches so wheels never slip from zero, and applies a controlled inverse pulse through the
         encoders when the command returns to zero — the robot nails its position.</p>
         <ul><li><span class="k">File</span>: weapon4_traction.py</li>
             <li><span class="k">Tune</span>: RAMP_MAX=3.0 · PULSE_K=0.012 · RPM_STOP_MIN=3.0</li></ul>
       </div>
-      <div class="card reveal"><div class="wnum">5</div>
+      <div class="card reveal"><div class="wnum">
+          <svg width="34" height="34" viewBox="0 0 36 36"><circle cx="18" cy="18" r="14" fill="none" stroke="#22d3a8" stroke-width="2.8"/><line x1="18" y1="18" x2="18" y2="8" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><line x1="18" y1="18" x2="26" y2="21" stroke="#ffcb47" stroke-width="2.6" stroke-linecap="round"/><circle cx="18" cy="18" r="2" fill="#fff"/></svg>
+        </div>
         <h3>⏱️ Auto-Endgame</h3>
         <p>Counts exactly 150,000 ms, fuses encoders + IMU into an X, Y, θ odometry, and drives the robot
         back home during the final 12 s so the park scores.</p>
         <ul><li><span class="k">File</span>: weapon5_endgame.py</li>
             <li><span class="k">Tune</span>: V_RETURN=0.85 · PARK_LOCK_CM=8 · FINAL_SAFE_MS=2000</li></ul>
       </div>
-      <div class="card reveal"><div class="wnum">🎮</div>
+      <div class="card reveal"><div class="wnum">
+          <svg width="34" height="34" viewBox="0 0 36 36"><path d="M18 6 C 8 6, 4 12, 4 20 C 4 27, 9 30, 13 28 C 15 27, 21 27, 23 28 C 27 30, 32 27, 32 20 C 32 12, 28 6, 18 6 Z" fill="none" stroke="#ff8a5c" stroke-width="2.6"/><circle cx="12" cy="18" r="3.4" fill="#4f8cff"/><circle cx="24" cy="18" r="3.4" fill="#22d3a8"/><path class="svg-spark" d="M18 3 L18 0 M31 7 L33.5 4.5 M5 7 L2.5 4.5" stroke="#ffcb47" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+        <h3>🧠 The Brain — on-board intelligence</h3>
+        <p>The robot <b>thinks by itself</b> 50 times per second — <b>zero internet, zero API</b>. It detects
+        drift, crashes and stalls, and re-tunes the other weapons live (KP/KD/boost) inside safe clamps,
+        then everything decays back to the proven constants.</p>
+        <ul><li><span class="k">File</span>: weapon6_brain.py</li>
+            <li><span class="k">Thoughts</span>: GAIN · DAMP · GRIP · HOME</li></ul>
+      </div>
+      <div class="card reveal"><div class="wnum">
+          <svg width="34" height="34" viewBox="0 0 36 36"><rect x="4" y="10" width="28" height="16" rx="8" fill="none" stroke="#4f8cff" stroke-width="2.6"/><circle cx="12" cy="18" r="3.4" fill="#4f8cff"/><circle cx="24" cy="18" r="3.4" fill="#22d3a8"/><line x1="18" y1="10" x2="18" y2="5" stroke="#ffcb47" stroke-width="2.2"/><circle class="svg-blink" cx="18" cy="4" r="2" fill="#ff4757"/></svg>
+        </div>
         <h3>🧑‍🚀 Pilot console</h3>
         <p>The real gamepad at 50 Hz is always the boss. Assist modes: <b>STRAIGHT</b>, <b>TURN</b>,
         <b>RETURN</b> and <b>STOP</b> — piloting built for a young gamer with great instincts, not yet adult
@@ -154,6 +213,77 @@
       <p>Iron Acres matches are exactly <b>2 minutes 30 seconds</b> long. Points come from game objects,
       a goal bonus and parking <b>in the home zone</b> at the end. That is why weapon 5 exists.</p>
     </div>
+    <div class="card reveal svg-card">
+      <h3>🗺️ The Iron Acres field (272 × 137 cm)</h3>
+      <svg viewBox="0 0 560 290" width="100%" role="img" aria-label="Iron Acres field map">
+        <defs>
+          <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 0 L10 5 L0 10 Z" fill="#ffcb47"/>
+          </marker>
+        </defs>
+        <rect x="8" y="8" width="544" height="274" rx="14" fill="#101736" stroke="#4f8cff" stroke-width="3"/>
+        <rect x="452" y="30" width="92" height="230" rx="10" fill="rgba(34,211,168,0.14)" stroke="#22d3a8" stroke-dasharray="6 5" stroke-width="2"/>
+        <text x="498" y="152" text-anchor="middle" fill="#22d3a8" font-size="15" font-weight="bold" transform="rotate(-90 498 152)">HOME / PARK ZONE</text>
+        <circle cx="205" cy="115" r="34" fill="rgba(255,107,129,0.16)" stroke="#ff6b81" stroke-width="2.4"/>
+        <circle cx="205" cy="175" r="34" fill="rgba(79,140,255,0.16)" stroke="#4f8cff" stroke-width="2.4"/>
+        <text x="205" y="111" text-anchor="middle" fill="#ff6b81" font-size="12" font-weight="bold">RED GOAL</text>
+        <text x="205" y="181" text-anchor="middle" fill="#4f8cff" font-size="12" font-weight="bold">BLUE GOAL</text>
+        <text x="205" y="62" text-anchor="middle" fill="#bcd0ff" font-size="13" font-weight="bold">🏙️ CITY CENTER</text>
+        <rect x="60" y="52" width="46" height="34" rx="7" fill="rgba(255,203,71,0.15)" stroke="#ffcb47" stroke-width="2"/>
+        <text x="83" y="73" text-anchor="middle" fill="#ffcb47" font-size="11">HOPPER</text>
+        <rect x="60" y="196" width="46" height="34" rx="7" fill="rgba(255,203,71,0.15)" stroke="#ffcb47" stroke-width="2"/>
+        <text x="83" y="217" text-anchor="middle" fill="#ffcb47" font-size="11">HOPPER</text>
+        <rect x="330" y="216" width="58" height="40" rx="7" fill="rgba(255,138,92,0.15)" stroke="#ff8a5c" stroke-width="2"/>
+        <text x="359" y="240" text-anchor="middle" fill="#ff8a5c" font-size="11">🏚️ BARN</text>
+        <circle class="svg-blink" cx="498" cy="245" r="9" fill="#4f8cff" stroke="#fff" stroke-width="2"/>
+        <path class="svg-flow" d="M498 245 C 430 250, 330 240, 280 200 S 230 130, 235 115" fill="none" stroke="#ffcb47" stroke-width="2.6" stroke-dasharray="8 7" marker-end="url(#arr)"/>
+        <path class="svg-flow svg-flow2" d="M240 145 C 300 190, 400 235, 490 235" fill="none" stroke="#22d3a8" stroke-width="2.6" stroke-dasharray="8 7" marker-end="url(#arr)"/>
+        <text x="345" y="122" fill="#bcd0ff" font-size="11">① pick up &amp; deliver products</text>
+        <text x="345" y="262" fill="#bcd0ff" font-size="11">② last 12 s: auto-return home (W5+W6)</text>
+        <text x="280" y="276" text-anchor="middle" fill="#7f93c9" font-size="11">272 cm</text>
+        <text x="20" y="150" fill="#7f93c9" font-size="11" transform="rotate(-90 20 150)">137 cm</text>
+      </svg>
+    </div>
+<div class="card reveal svg-card">
+<svg viewBox="0 0 760 240" width="100%" role="img" aria-label="Control chain diagram">
+  <defs>
+    <marker id="arr2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#4f8cff"/>
+    </marker>
+  </defs>
+  <rect x="10" y="88" width="120" height="46" rx="10" fill="#2763d8"/>
+  <text x="70" y="108" text-anchor="middle" fill="#fff" font-size="13" font-weight="bold">pilot_gamepad</text>
+  <text x="70" y="124" text-anchor="middle" fill="#bcd0ff" font-size="10.5">50 Hz - the boss</text>
+  <line x1="130" y1="111" x2="162" y2="111" stroke="#4f8cff" stroke-width="2.4" marker-end="url(#arr2)"/>
+  <rect x="166" y="88" width="118" height="46" rx="10" fill="#1c4fa8"/>
+  <text x="225" y="108" text-anchor="middle" fill="#fff" font-size="13" font-weight="bold">W3 curves</text>
+  <text x="225" y="124" text-anchor="middle" fill="#bcd0ff" font-size="10.5">cubic + slew</text>
+  <line x1="284" y1="111" x2="316" y2="111" stroke="#4f8cff" stroke-width="2.4" marker-end="url(#arr2)"/>
+  <rect x="320" y="88" width="118" height="46" rx="10" fill="#3d55c0"/>
+  <text x="379" y="108" text-anchor="middle" fill="#fff" font-size="13" font-weight="bold">W2 torque</text>
+  <text x="379" y="124" text-anchor="middle" fill="#bcd0ff" font-size="10.5">anti-stall boost</text>
+  <line x1="438" y1="111" x2="470" y2="111" stroke="#4f8cff" stroke-width="2.4" marker-end="url(#arr2)"/>
+  <rect x="474" y="88" width="118" height="46" rx="10" fill="#22a06b"/>
+  <text x="533" y="108" text-anchor="middle" fill="#fff" font-size="13" font-weight="bold">W4 traction</text>
+  <text x="533" y="124" text-anchor="middle" fill="#d2ffe9" font-size="10.5">ONLY motor writer</text>
+  <line x1="592" y1="111" x2="624" y2="111" stroke="#4f8cff" stroke-width="2.4" marker-end="url(#arr2)"/>
+  <rect x="628" y="92" width="118" height="38" rx="10" fill="#0b1020" stroke="#ffcb47"/>
+  <text x="687" y="116" text-anchor="middle" fill="#ffcb47" font-size="12.5" font-weight="bold">MOTORS</text>
+  <rect x="320" y="10" width="118" height="42" rx="10" fill="#7a3df0"/>
+  <text x="379" y="28" text-anchor="middle" fill="#fff" font-size="13" font-weight="bold">W1 gyro-lock</text>
+  <text x="379" y="44" text-anchor="middle" fill="#e4d2ff" font-size="10.5">PID hooked inside</text>
+  <line x1="379" y1="52" x2="379" y2="84" stroke="#7a3df0" stroke-width="2.4" marker-end="url(#arr2)"/>
+  <rect x="474" y="160" width="118" height="42" rx="10" fill="#0e6b73"/>
+  <text x="533" y="178" text-anchor="middle" fill="#fff" font-size="13" font-weight="bold">W5 endgame</text>
+  <text x="533" y="194" text-anchor="middle" fill="#c8f4f0" font-size="10.5">clock - odometry - return</text>
+  <line x1="533" y1="160" x2="533" y2="138" stroke="#0e8f99" stroke-width="2.4" marker-end="url(#arr2)"/>
+  <rect x="150" y="176" width="150" height="50" rx="14" fill="none" stroke="#ffcb47" stroke-width="2.4" stroke-dasharray="7 5"/>
+  <text x="225" y="197" text-anchor="middle" fill="#ffcb47" font-size="13" font-weight="bold">W6 BRAIN (50 Hz)</text>
+  <text x="225" y="214" text-anchor="middle" fill="#ffe9b0" font-size="10.5">re-tunes KP / KD / BOOST live</text>
+  <path class="svg-flow" d="M300 190 C 360 190, 340 60, 372 56" fill="none" stroke="#ffcb47" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#arr2)"/>
+  <path class="svg-flow svg-flow2" d="M300 210 C 440 215, 430 205, 470 195" fill="none" stroke="#ffcb47" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#arr2)"/>
+</svg>
+</div>
     <div class="cards">
       <div class="card reveal"><h3>🕒 The clock rules</h3>
         <p>150,000 ms total. At <b>t = 138,000 ms</b> the endgame alert turns on: LED blink + assisted
@@ -182,7 +312,7 @@
           <li>Open <a href="https://xrpcode.wpi.edu">xrpcode.wpi.edu</a> in Chrome, Edge or Opera.</li>
           <li>Plug the XRP by USB and click <b>Connect</b> (WebSerial).</li>
           <li>Create files in the filesystem panel and paste each <code>weaponN_*.py</code>,
-              <code>pilot_gamepad.py</code>, <code>main_match.py</code>.</li>
+              <code>pilot_gamepad.py</code>, <code>weapon6_brain.py</code>, <code>main_match.py</code>.</li>
           <li>In the Python tab run <code>import main_match</code>.</li>
         </ol>
       </div>
@@ -192,7 +322,7 @@ pip install mpremote
 
 <b># copy every file to the robot root (XRP plugged by USB)</b>
 mpremote fs cp weapon1_gyro_lock.py weapon2_torque_boost.py \
-  weapon3_curves.py weapon4_traction.py weapon5_endgame.py \
+  weapon3_curves.py weapon4_traction.py weapon5_endgame.py weapon6_brain.py \
   pilot_gamepad.py main_match.py :
 
 <b># open the REPL and start the match software</b>
@@ -222,7 +352,7 @@ mpremote
     <div class="card reveal">
       <table>
         <tr><th>Command</th><th>What it proves</th></tr>
-        <tr><td><code>python3 verify.py</code></td><td>12 math unit checks of the 5 weapons</td></tr>
+        <tr><td><code>python3 verify.py</code></td><td>12 math unit checks of the weapons</td></tr>
         <tr><td><code>python3 stress.py</code></td><td>30 Iron Acres matches with crashes and stalls — 30/30 approved</td></tr>
         <tr><td><code>python3 mass_campaign.py</code></td><td>up to 300 Iron Acres matches per pilot profile (KID/GOOD/REGULAR/ADULT)</td></tr>
         <tr><td><code>python3 games.py</code></td><td>DRIVE · SUMO · SUMO2 · SOCCER · SOCCER2 with F1–F5 stick fidelity</td></tr>

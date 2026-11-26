@@ -22,7 +22,7 @@
 
 
 > 🚀 **New!** 📖 [GitHub Wiki](https://github.com/MeowDev1011/XRP-V1-robot-upgrades/wiki) — step-by-step guides with emojis.
-> 🌐 **New!** 🎨 [Documentation website + 3D games sandbox](docs/index.html) — DRIVE / SUMO / SOCCER, play in the browser.
+> 🌐 **New!** 🎨 [Documentation website + 3D games sandbox](docs/index.html) — 5 games (SUMO · SUMO2 · SOCCER · SOCCER2 · DRIVE), SVG diagrams, sound, records — play in the browser.
 
 ---
 
@@ -54,7 +54,7 @@
 
 Beyond this README, the project ships with two extra layers of docs:
 
-- **🌍 [docs/index.html](docs/index.html)** — a self-contained website (HTML + CSS + JS, no build step, works offline) with animated hero, cards for every weapon, full game rules and a **Three.js 3D sandbox** where you can play the three simulation games in the browser: 🚗 **DRIVE** (individual driving circuit), 🤼 **SUMO** (1v1 and 2v2 push-out) and ⚽ **SOCCER** (1v1 and 2v2). 🏟️ Iron Acres is documented but not sandboxed (it needs the full field model).
+- **🌍 [docs/index.html](docs/index.html)** — a self-contained website (HTML + CSS + JS, no build step, works offline) with animated SVG art (hero robot, Iron Acres field map, control-chain diagram), cards for every weapon, full game rules and a **Three.js 3D sandbox v2** — shadows, particles, sound, minimap, boost, records, 3 camera modes and **5 games**: 🤼 **SUMO** 1v1, 🤼🤼 **SUMO2** 2v2, ⚽ **SOCCER** 1v1, ⚽⚽ **SOCCER2** 2v2 and 🚗 **DRIVE** (door circuit). 🏟️ Iron Acres is documented but not sandboxed (it needs the full field model).
 - **📖 [GitHub Wiki](https://github.com/MeowDev1011/XRP-V1-robot-upgrades/wiki)** — many pages with emojis: what this robot is, installation, how to upload files, controls, the 6 weapons, testing & simulation, troubleshooting, calibration, collaboration guide.
 
 ## ⚡ What is this?

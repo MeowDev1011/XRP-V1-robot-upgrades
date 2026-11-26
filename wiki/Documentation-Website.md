@@ -10,10 +10,10 @@
 | File | What it is |
 |---|---|
 | `index.html` | 🏠 Main documentation site: animated hero, weapon cards, match rules, install guides, test tables, troubleshooting, FAQ links |
-| `sandbox.html` | 🧊 The **Three.js 3D sandbox** — play the three training games in the browser |
+| `sandbox.html` | 🧋 The **Three.js 3D sandbox v2** — 5 games (SUMO / SUMO2 / SOCCER / SOCCER2 / DRIVE), shadows, particles, sound, minimap, boost, records, 3 cameras |
 | `style.css` | 🎨 Shared theme: aurora background, glass cards, scroll animations |
 
-## 🧊 The 3D sandbox (DRIVE · SUMO · SOCCER)
+## 🧋 The 3D sandbox (DRIVE · SUMO · SUMO2 · SOCCER · SOCCER2)
 
 Open `docs/sandbox.html` (or serve the folder: `python3 -m http.server -d docs 8000` →
 http://localhost:8000/sandbox.html).
