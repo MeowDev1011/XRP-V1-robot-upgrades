@@ -25,7 +25,7 @@ from XRPLib.defaults import drivetrain, imu
 # ------------------------------------------------------------
 # ON-TRACK CALIBRATION  (one parameter at a time, in this order)
 # ------------------------------------------------------------
-KP        = 0.064   # [step 1] effort per degree of error. Oscillates -> lower 30-40%.
+KP        = 0.068   # [step 1] effort per degree of error. Oscillates -> lower 30-40%.
 KI        = 0.06    # [step 3] constant drift. Only once KP/KD are stable.
 KD        = 0.0055  # [step 2] damps spins and crashes. Raise if it bounces.
 I_ZONE    = 4.0     # degrees: the integral only accumulates inside this band
