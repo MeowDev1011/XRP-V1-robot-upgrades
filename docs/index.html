@@ -3,11 +3,40 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🤖 Team Robots Legends — XRP Master Software</title>
+<title>Team Robots Legends — XRP Master Software</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="aurora"></div><div class="grid"></div>
+
+<!-- ============ SVG icon set (high-quality strokes, no emojis) ============ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-robot" viewBox="0 0 24 24"><rect x="5" y="9" width="14" height="10" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 9V5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="4" r="1.4" fill="currentColor"/><circle cx="9.5" cy="13.5" r="1.3" fill="currentColor"/><circle cx="14.5" cy="13.5" r="1.3" fill="currentColor"/><path d="M3 13v3 M21 13v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 1.5v4 M12 18.5v4 M1.5 12h4 M18.5 12h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2 6 13h5l-1 9 7-11h-5Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+  <symbol id="i-curve" viewBox="0 0 24 24"><path d="M3 20C10 20 12 4 21 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M3 22h18" stroke="currentColor" stroke-width="1.6" stroke-dasharray="3 3" stroke-linecap="round"/></symbol>
+  <symbol id="i-wheel" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="2.6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3.5v6 M12 14.5v6 M3.5 12h6 M14.5 12h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3.5 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-brake" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 8v5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="16" r="1.2" fill="currentColor"/><path d="M3.5 6C2 8 2 16 3.5 18 M20.5 6C22 8 22 16 20.5 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-brain" viewBox="0 0 24 24"><path d="M12 4.5c-3-2-7-.5-7 3-2 .5-2.5 4 0 5.5-.5 3 3 5 5 3.8V4.5Z M12 4.5c3-2 7-.5 7 3 2 .5 2.5 4 0 5.5.5 3-3 5-5 3.8V4.5Z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/><path d="M12 4.5V17" stroke="currentColor" stroke-width="1.6"/></symbol>
+  <symbol id="i-pad" viewBox="0 0 24 24"><rect x="2.5" y="7.5" width="19" height="10" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 10.5v4 M6 12.5h4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><circle cx="15.5" cy="11" r="1.2" fill="currentColor"/><circle cx="17.8" cy="13.5" r="1.2" fill="currentColor"/></symbol>
+  <symbol id="i-ball" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 8.2l3.4 2.5-1.3 4h-4.2l-1.3-4Z M12 8.2V4 M15.4 10.7l4-1.2 M14.1 14.7l2.6 3.4 M9.9 14.7l-2.6 3.4 M8.6 10.7l-4-1.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7 2.6v5.2c0 4.8-3.3 7.8-7 9.8-3.7-2-7-5-7-9.8V5.6Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+  <symbol id="i-car" viewBox="0 0 24 24"><path d="M4 13l1.6-4.4A2 2 0 0 1 7.5 7h9a2 2 0 0 1 1.9 1.6L20 13 M3.5 13h17a1 1 0 0 1 1 1v3.5h-2.4 M3.5 13a1 1 0 0 0-1 1v3.5H5 M6.5 17.5a1.7 1.7 0 1 0 3.4 0 M14.1 17.5a1.7 1.7 0 1 0 3.4 0 M9.9 17.5h4.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-map" viewBox="0 0 24 24"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Z M9 4v14 M15 6v14" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v11 M7.5 10 12 14.5 16.5 10 M4 19h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-flask" viewBox="0 0 24 24"><path d="M9.5 3h5 M10.5 3v6L5 19a1.8 1.8 0 0 0 1.6 2.6h10.8A1.8 1.8 0 0 0 19 19L13.5 9V3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.5 15h9" stroke="currentColor" stroke-width="2"/></symbol>
+  <symbol id="i-wrench" viewBox="0 0 24 24"><path d="M20.5 6.5a5 5 0 0 1-6.6 6.3L7 19.7a2 2 0 0 1-2.8-2.8l6.9-6.9a5 5 0 0 1 6.3-6.6L14.5 6.3l3.2 3.2 2.8-3Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l10-6.5Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3.2l2.6 5.4 5.9.8-4.3 4.1 1 5.9-5.2-2.8-5.2 2.8 1-5.9L3.5 9.4l5.9-.8Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15.5H6.5A2.5 2.5 0 0 0 4 21V5.5Z M20 18.5H6.5A2.5 2.5 0 0 0 4 21" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M8 7.5h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-gauge" viewBox="0 0 24 24"><path d="M4 17a8.5 8.5 0 1 1 16 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M12 16 16 9.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="1.6" fill="currentColor"/></symbol>
+  <symbol id="i-chain" viewBox="0 0 24 24"><path d="M9.5 14.5 14.5 9.5 M8 12l-2.5 2.5a3.5 3.5 0 0 0 5 5L13 17 M16 12l2.5-2.5a3.5 3.5 0 0 0-5-5L11 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2.8v3 M12 18.2v3 M2.8 12h3 M18.2 12h3 M5.5 5.5l2.1 2.1 M16.4 16.4l2.1 2.1 M18.5 5.5l-2.1 2.1 M7.6 16.4l-2.1 2.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20.5S3.5 15 3.5 9.2A4.7 4.7 0 0 1 12 6.4a4.7 4.7 0 0 1 8.5 2.8c0 5.8-8.5 11.3-8.5 11.3Z" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0Z M8 5H5a3 3 0 0 0 3 4 M16 5h3a3 3 0 0 1-3 4 M12 13v4 M9 20h6 M10 17h4v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-flag" viewBox="0 0 24 24"><path d="M6 21V4 M6 5h11l-2.5 3.5L17 12H6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+</defs></svg>
 
 <nav>
   <div class="wrap">
@@ -25,32 +54,32 @@
       Robots Legends <span>// XRP</span>
     </div>
     <div class="links">
-      <a href="#weapons">⚔️ Weapons</a>
-      <a href="#match">🎮 Match</a>
-      <a href="#sandbox">🧊 3D Sandbox</a>
-      <a href="#install">📥 Install</a>
-      <a href="#tests">🧪 Tests</a>
-      <a href="#trouble">🚑 Troubleshooting</a>
-      <a href="https://github.com/MeowDev1011/XRP-V1-robot-upgrades/wiki" class="cta">📖 Wiki</a>
+      <a href="#weapons"><svg class="ic"><use href="#i-bolt"/></svg> Weapons</a>
+      <a href="#match"><svg class="ic"><use href="#i-flag"/></svg> Match</a>
+      <a href="#sandbox"><svg class="ic"><use href="#i-play"/></svg> 3D Sandbox</a>
+      <a href="#install"><svg class="ic"><use href="#i-download"/></svg> Install</a>
+      <a href="#tests"><svg class="ic"><use href="#i-flask"/></svg> Tests</a>
+      <a href="#trouble"><svg class="ic"><use href="#i-wrench"/></svg> Troubleshooting</a>
+      <a href="https://github.com/MeowDev1011/XRP-V1-robot-upgrades/wiki" class="cta"><svg class="ic"><use href="#i-book"/></svg> Wiki</a>
     </div>
   </div>
 </nav>
 
 <header class="hero">
   <div class="floaters">
-    <span style="top:12%;left:8%;">🤖</span>
-    <span style="top:22%;right:10%;animation-delay:-2s;">⚙️</span>
-    <span style="bottom:18%;left:14%;animation-delay:-4s;">⚽</span>
-    <span style="bottom:28%;right:16%;animation-delay:-1s;">🏆</span>
-    <span style="top:55%;left:4%;animation-delay:-5s;">🧲</span>
+    <span style="top:12%;left:8%;"><svg class="ic"><use href="#i-robot"/></svg></span>
+    <span style="top:22%;right:10%;animation-delay:-2s;"><svg class="ic"><use href="#i-gear"/></svg></span>
+    <span style="bottom:18%;left:14%;animation-delay:-4s;"><svg class="ic"><use href="#i-ball"/></svg></span>
+    <span style="bottom:28%;right:16%;animation-delay:-1s;"><svg class="ic"><use href="#i-trophy"/></svg></span>
+    <span style="top:55%;left:4%;animation-delay:-5s;"><svg class="ic"><use href="#i-brain"/></svg></span>
   </div>
   <div class="wrap hero-grid">
     <div>
-      <span class="pill">🧪 100% simulated &amp; verified · MicroPython · runs ON the board</span>
+      <span class="pill"><svg class="ic"><use href="#i-flask"/></svg> 100% simulated &amp; verified · MicroPython · runs ON the board</span>
       <h1>Robot legends are<br>built near the metal.</h1>
       <p class="sub">
         Master software of <b>Team Robots Legends</b> (FUSAMO) for the XRP
-        competition <b>⚔️ Iron Acres</b> — six secret assist weapons for a real
+        competition <b>Iron Acres</b> — six secret assist weapons for a real
         gamepad, one kid pilot, zero blocking code, 150,000 ms of pure teamwork.
       </p>
     </div>
@@ -84,9 +113,9 @@
       <img class="badge-img" src="https://img.shields.io/badge/STRICT-94.7%25-success" alt="strict">
     </div>
     <div class="hero-actions">
-      <a class="btn primary" href="sandbox.html">🧊 Open the 3D sandbox →</a>
-      <a class="btn ghost" href="https://github.com/MeowDev1011/XRP-V1-robot-upgrades">⭐ GitHub repo</a>
-      <a class="btn ghost" href="https://xrpcode.wpi.edu">🛠 XRPCode editor</a>
+      <a class="btn primary" href="sandbox.html"><svg class="ic"><use href="#i-play"/></svg> Open the 3D sandbox</a>
+      <a class="btn ghost" href="https://github.com/MeowDev1011/XRP-V1-robot-upgrades"><svg class="ic"><use href="#i-star"/></svg> GitHub repo</a>
+      <a class="btn ghost" href="https://xrpcode.wpi.edu"><svg class="ic"><use href="#i-wrench"/></svg> XRPCode editor</a>
     </div>
   </div>
 </header>
@@ -94,7 +123,7 @@
 <section id="about">
   <div class="wrap">
     <div class="sec-head reveal">
-      <h2>⚡ What is this?</h2>
+      <h2><svg class="ic ic-h2"><use href="#i-bolt"/></svg> What is this?</h2>
       <p>The <b class="ok">XRP</b> (Experiential Robotics Platform, by SparkFun · WPI · DEKA · FIRST) is a
       Pico&nbsp;W powered robot with encoders, an IMU, an ultrasonic sensor and servos. This repository holds
       the <b>master software</b> our team runs during matches: a continuous 50 Hz console driven by a real
@@ -114,7 +143,7 @@
 <section id="weapons">
   <div class="wrap">
     <div class="sec-head reveal">
-      <h2>⚔️ The 6 Secret Weapons</h2>
+      <h2><svg class="ic ic-h2"><use href="#i-bolt"/></svg> The 6 Secret Weapons</h2>
       <p>One weapon at a time builds, one match at a time improves. All weapons are continuous, sensor-driven
       assistance — <b>no one-button macros</b>, <b>no blocking waits</b>, everything runs on the board.</p>
     </div>
@@ -122,7 +151,7 @@
       <div class="card reveal"><div class="wnum">
           <svg width="34" height="34" viewBox="0 0 36 36"><circle cx="18" cy="18" r="13" fill="none" stroke="#22d3a8" stroke-width="2.6"/><circle cx="18" cy="18" r="5.5" fill="none" stroke="#ffcb47" stroke-width="2.6"/><line x1="18" y1="1" x2="18" y2="9" stroke="#22d3a8" stroke-width="2.6"/><line x1="18" y1="27" x2="18" y2="35" stroke="#22d3a8" stroke-width="2.6"/><line x1="1" y1="18" x2="9" y2="18" stroke="#22d3a8" stroke-width="2.6"/><line x1="27" y1="18" x2="35" y2="18" stroke="#22d3a8" stroke-width="2.6"/><circle class="svg-blink" cx="18" cy="18" r="2" fill="#ff4757"/></svg>
         </div>
-        <h3>🎯 Gyro-Lock PID</h3>
+        <h3><svg class="ic"><use href="#i-target"/></svg> Gyro-Lock PID</h3>
         <p>A real-time PID (<span class="k">Kp, Ki, Kd</span>) on <code>imu.get_yaw()</code> that locks the heading
         whenever you drive straight and instantly kills spins, drifts and collisions.</p>
         <ul><li><span class="k">File</span>: weapon1_gyro_lock.py</li>
@@ -131,7 +160,7 @@
       <div class="card reveal"><div class="wnum">
           <svg width="34" height="34" viewBox="0 0 36 36"><polygon points="20,2 8,20 16,20 13,34 28,14 19,14" fill="#ffcb47"/></svg>
         </div>
-        <h3>💪 Torque Boost</h3>
+        <h3><svg class="ic"><use href="#i-bolt"/></svg> Torque Boost</h3>
         <p>Compares desired vs encoder-measured speed. Detects stalls at low speed and pours in extra torque,
         then releases it the instant the wheels flow again.</p>
         <ul><li><span class="k">File</span>: weapon2_torque_boost.py</li>
@@ -140,7 +169,7 @@
       <div class="card reveal"><div class="wnum">
           <svg width="34" height="34" viewBox="0 0 36 36"><path d="M2 30 C 12 30, 14 6, 34 6" fill="none" stroke="#4f8cff" stroke-width="3" stroke-linecap="round"/><path d="M2 34 L 34 34" stroke="#22d3a8" stroke-width="2" stroke-dasharray="3 3"/></svg>
         </div>
-        <h3>🕹️ Cubic Curves</h3>
+        <h3><svg class="ic"><use href="#i-curve"/></svg> Cubic Curves</h3>
         <p>Cubic response curves turn raw stick input into surgical millimetre moves while keeping 100%
         top speed for long runs.</p>
         <ul><li><span class="k">File</span>: weapon3_curves.py</li>
@@ -149,7 +178,7 @@
       <div class="card reveal"><div class="wnum">
           <svg width="34" height="34" viewBox="0 0 36 36"><circle cx="18" cy="18" r="14" fill="none" stroke="#0d0d12" stroke-width="6"/><circle cx="18" cy="18" r="14" fill="none" stroke="#ff6b81" stroke-width="2.4" stroke-dasharray="6 4"/><circle cx="18" cy="18" r="4" fill="#ffcb47"/></svg>
         </div>
-        <h3>🛞 Traction &amp; Brake</h3>
+        <h3><svg class="ic"><use href="#i-wheel"/></svg> Traction &amp; Brake</h3>
         <p>Ramps launches so wheels never slip from zero, and applies a controlled inverse pulse through the
         encoders when the command returns to zero — the robot nails its position.</p>
         <ul><li><span class="k">File</span>: weapon4_traction.py</li>
@@ -158,7 +187,7 @@
       <div class="card reveal"><div class="wnum">
           <svg width="34" height="34" viewBox="0 0 36 36"><circle cx="18" cy="18" r="14" fill="none" stroke="#22d3a8" stroke-width="2.8"/><line x1="18" y1="18" x2="18" y2="8" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><line x1="18" y1="18" x2="26" y2="21" stroke="#ffcb47" stroke-width="2.6" stroke-linecap="round"/><circle cx="18" cy="18" r="2" fill="#fff"/></svg>
         </div>
-        <h3>⏱️ Auto-Endgame</h3>
+        <h3><svg class="ic"><use href="#i-clock"/></svg> Auto-Endgame</h3>
         <p>Counts exactly 150,000 ms, fuses encoders + IMU into an X, Y, θ odometry, and drives the robot
         back home during the final 12 s so the park scores.</p>
         <ul><li><span class="k">File</span>: weapon5_endgame.py</li>
@@ -167,7 +196,7 @@
       <div class="card reveal"><div class="wnum">
           <svg width="34" height="34" viewBox="0 0 36 36"><path d="M18 6 C 8 6, 4 12, 4 20 C 4 27, 9 30, 13 28 C 15 27, 21 27, 23 28 C 27 30, 32 27, 32 20 C 32 12, 28 6, 18 6 Z" fill="none" stroke="#ff8a5c" stroke-width="2.6"/><circle cx="12" cy="18" r="3.4" fill="#4f8cff"/><circle cx="24" cy="18" r="3.4" fill="#22d3a8"/><path class="svg-spark" d="M18 3 L18 0 M31 7 L33.5 4.5 M5 7 L2.5 4.5" stroke="#ffcb47" stroke-width="2" stroke-linecap="round"/></svg>
         </div>
-        <h3>🧠 The Brain — on-board intelligence</h3>
+        <h3><svg class="ic"><use href="#i-brain"/></svg> The Brain — on-board intelligence</h3>
         <p>The robot <b>thinks by itself</b> 50 times per second — <b>zero internet, zero API</b>. It detects
         drift, crashes and stalls, and re-tunes the other weapons live (KP/KD/boost) inside safe clamps,
         then everything decays back to the proven constants.</p>
@@ -177,7 +206,7 @@
       <div class="card reveal"><div class="wnum">
           <svg width="34" height="34" viewBox="0 0 36 36"><rect x="4" y="10" width="28" height="16" rx="8" fill="none" stroke="#4f8cff" stroke-width="2.6"/><circle cx="12" cy="18" r="3.4" fill="#4f8cff"/><circle cx="24" cy="18" r="3.4" fill="#22d3a8"/><line x1="18" y1="10" x2="18" y2="5" stroke="#ffcb47" stroke-width="2.2"/><circle class="svg-blink" cx="18" cy="4" r="2" fill="#ff4757"/></svg>
         </div>
-        <h3>🧑‍🚀 Pilot console</h3>
+        <h3><svg class="ic"><use href="#i-pad"/></svg> Pilot console</h3>
         <p>The real gamepad at 50 Hz is always the boss. Assist modes: <b>STRAIGHT</b>, <b>TURN</b>,
         <b>RETURN</b> and <b>STOP</b> — piloting built for a young gamer with great instincts, not yet adult
         thumb precision. The kid never needs to reverse.</p>
@@ -190,18 +219,22 @@
 <section id="sandbox">
   <div class="wrap">
     <div class="sec-head reveal">
-      <h2>🧊 The 3D Sandbox</h2>
+      <h2><svg class="ic ic-h2"><use href="#i-play"/></svg> The 3D Sandbox</h2>
       <p>Play the three training games right in your browser with the same physics philosophy as the board
-      simulators: 🚗 <b>DRIVE</b> (circuit through the doors), 🤼 <b>SUMO</b> (1v1 push-out) and
-      ⚽ <b>SOCCER</b> (score past the keeper). 🏟️ Iron Acres is documented in the
+      simulators: <b>DRIVE</b> (circuit through the doors), <b>SUMO</b> (1v1 push-out) and
+      <b>SOCCER</b> (score past the keeper). Iron Acres is documented in the
       <a href="https://github.com/MeowDev1011/XRP-V1-robot-upgrades/wiki">wiki</a> but not sandboxed — it
       needs the full field model.</p>
     </div>
     <div class="card reveal" style="text-align:center;padding:34px;">
-      <div style="font-size:52px;">🚗 🤼 ⚽</div>
+      <div class="hero-icons">
+        <svg class="ic-hero"><use href="#i-car"/></svg>
+        <svg class="ic-hero"><use href="#i-shield"/></svg>
+        <svg class="ic-hero"><use href="#i-ball"/></svg>
+      </div>
       <p style="margin-top:10px;">Keyboard: <b>W A S D</b> or arrows to drive · <b>Space</b> = brake
       · <b>R</b> = restart · drag the scene to orbit the camera (on phone: touch buttons on screen).</p>
-      <a class="btn primary" style="margin-top:16px;" href="sandbox.html">▶️ Launch sandbox</a>
+      <a class="btn primary" style="margin-top:16px;" href="sandbox.html"><svg class="ic"><use href="#i-play"/></svg> Launch sandbox</a>
     </div>
   </div>
 </section>
@@ -209,12 +242,12 @@
 <section id="match">
   <div class="wrap">
     <div class="sec-head reveal">
-      <h2>🎮 How a match is played</h2>
+      <h2><svg class="ic ic-h2"><use href="#i-flag"/></svg> How a match is played</h2>
       <p>Iron Acres matches are exactly <b>2 minutes 30 seconds</b> long. Points come from game objects,
       a goal bonus and parking <b>in the home zone</b> at the end. That is why weapon 5 exists.</p>
     </div>
     <div class="card reveal svg-card">
-      <h3>🗺️ The Iron Acres field (272 × 137 cm)</h3>
+      <h3><svg class="ic"><use href="#i-map"/></svg> The Iron Acres field (272 × 137 cm)</h3>
       <svg viewBox="0 0 560 290" width="100%" role="img" aria-label="Iron Acres field map">
         <defs>
           <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -228,18 +261,18 @@
         <circle cx="205" cy="175" r="34" fill="rgba(79,140,255,0.16)" stroke="#4f8cff" stroke-width="2.4"/>
         <text x="205" y="111" text-anchor="middle" fill="#ff6b81" font-size="12" font-weight="bold">RED GOAL</text>
         <text x="205" y="181" text-anchor="middle" fill="#4f8cff" font-size="12" font-weight="bold">BLUE GOAL</text>
-        <text x="205" y="62" text-anchor="middle" fill="#bcd0ff" font-size="13" font-weight="bold">🏙️ CITY CENTER</text>
+        <text x="205" y="62" text-anchor="middle" fill="#bcd0ff" font-size="13" font-weight="bold">CITY CENTER</text>
         <rect x="60" y="52" width="46" height="34" rx="7" fill="rgba(255,203,71,0.15)" stroke="#ffcb47" stroke-width="2"/>
         <text x="83" y="73" text-anchor="middle" fill="#ffcb47" font-size="11">HOPPER</text>
         <rect x="60" y="196" width="46" height="34" rx="7" fill="rgba(255,203,71,0.15)" stroke="#ffcb47" stroke-width="2"/>
         <text x="83" y="217" text-anchor="middle" fill="#ffcb47" font-size="11">HOPPER</text>
         <rect x="330" y="216" width="58" height="40" rx="7" fill="rgba(255,138,92,0.15)" stroke="#ff8a5c" stroke-width="2"/>
-        <text x="359" y="240" text-anchor="middle" fill="#ff8a5c" font-size="11">🏚️ BARN</text>
+        <text x="359" y="240" text-anchor="middle" fill="#ff8a5c" font-size="11">BARN</text>
         <circle class="svg-blink" cx="498" cy="245" r="9" fill="#4f8cff" stroke="#fff" stroke-width="2"/>
         <path class="svg-flow" d="M498 245 C 430 250, 330 240, 280 200 S 230 130, 235 115" fill="none" stroke="#ffcb47" stroke-width="2.6" stroke-dasharray="8 7" marker-end="url(#arr)"/>
         <path class="svg-flow svg-flow2" d="M240 145 C 300 190, 400 235, 490 235" fill="none" stroke="#22d3a8" stroke-width="2.6" stroke-dasharray="8 7" marker-end="url(#arr)"/>
-        <text x="345" y="122" fill="#bcd0ff" font-size="11">① pick up &amp; deliver products</text>
-        <text x="345" y="262" fill="#bcd0ff" font-size="11">② last 12 s: auto-return home (W5+W6)</text>
+        <text x="345" y="122" fill="#bcd0ff" font-size="11">1. pick up &amp; deliver products</text>
+        <text x="345" y="262" fill="#bcd0ff" font-size="11">2. last 12 s: auto-return home (W5+W6)</text>
         <text x="280" y="276" text-anchor="middle" fill="#7f93c9" font-size="11">272 cm</text>
         <text x="20" y="150" fill="#7f93c9" font-size="11" transform="rotate(-90 20 150)">137 cm</text>
       </svg>
@@ -285,14 +318,14 @@
 </svg>
 </div>
     <div class="cards">
-      <div class="card reveal"><h3>🕒 The clock rules</h3>
+      <div class="card reveal"><h3><svg class="ic"><use href="#i-clock"/></svg> The clock rules</h3>
         <p>150,000 ms total. At <b>t = 138,000 ms</b> the endgame alert turns on: LED blink + assisted
         return home. In the last <span class="k">2,000 ms</span> driving is safe-locked for a guaranteed
         park.</p></div>
-      <div class="card reveal"><h3>🧭 Pilot priority</h3>
+      <div class="card reveal"><h3><svg class="ic"><use href="#i-pad"/></svg> Pilot priority</h3>
         <p>Gamepad sticks are ALWAYS more important than any assist. Weapons only act around the pilot's
         intent — they never fight the sticks.</p></div>
-      <div class="card reveal"><h3>📊 The 3 P-metrics</h3>
+      <div class="card reveal"><h3><svg class="ic"><use href="#i-gauge"/></svg> The 3 P-metrics</h3>
         <ul><li><b>P1</b> — spin right after a crash (&gt; 3°) must recover</li>
             <li><b>P2</b> — cruise heading error must stay under 12°</li>
             <li><b>P3</b> — park must nail inside the zone (rpm &lt; 1.5, &lt; 10 cm)</li></ul>
@@ -304,10 +337,10 @@
 <section id="install">
   <div class="wrap">
     <div class="sec-head reveal">
-      <h2>📥 Install on the robot — 3 ways</h2>
+      <h2><svg class="ic ic-h2"><use href="#i-download"/></svg> Install on the robot — 3 ways</h2>
     </div>
     <div class="cards">
-      <div class="card reveal"><h3>🥇 XRPCode (official web editor)</h3>
+      <div class="card reveal"><h3><svg class="ic"><use href="#i-star"/></svg> XRPCode (official web editor)</h3>
         <ol class="card_list" style="padding-left:18px;color:var(--dim);font-size:14.5px;line-height:1.7;">
           <li>Open <a href="https://xrpcode.wpi.edu">xrpcode.wpi.edu</a> in Chrome, Edge or Opera.</li>
           <li>Plug the XRP by USB and click <b>Connect</b> (WebSerial).</li>
@@ -316,7 +349,7 @@
           <li>In the Python tab run <code>import main_match</code>.</li>
         </ol>
       </div>
-      <div class="card reveal"><h3>🥈 USB serial (mpremote / Thonny)</h3>
+      <div class="card reveal"><h3><svg class="ic"><use href="#i-download"/></svg> USB serial (mpremote / Thonny)</h3>
         <div class="code"><b># install the device tool</b>
 pip install mpremote
 
@@ -329,7 +362,7 @@ mpremote fs cp weapon1_gyro_lock.py weapon2_torque_boost.py \
 mpremote
 &gt;&gt;&gt; import main_match</div>
       </div>
-      <div class="card reveal"><h3>🥉 Copa Robótica classroom</h3>
+      <div class="card reveal"><h3><svg class="ic"><use href="#i-book"/></svg> Copa Robótica classroom</h3>
         <ol style="padding-left:18px;color:var(--dim);font-size:14.5px;line-height:1.7;">
           <li>Open <a href="https://programacion.coparobotica.com">programacion.coparobotica.com</a>.</li>
           <li>Join the class with the class link + code from the coach.</li>
@@ -344,7 +377,7 @@ mpremote
 <section id="tests">
   <div class="wrap">
     <div class="sec-head reveal">
-      <h2>🧪 Testing &amp; simulation</h2>
+      <h2><svg class="ic ic-h2"><use href="#i-flask"/></svg> Testing &amp; simulation</h2>
       <p>Everything is validated by thousands of simulated matches — threshold gates in
       <code>ci/battery.sh</code>, run 24/7 on GitHub Actions. We edit <b>only</b> the pilot and the
       weapons; never the tests, never the F-fidelity metrics.</p>
@@ -365,16 +398,16 @@ mpremote
 <section id="trouble">
   <div class="wrap">
     <div class="sec-head reveal">
-      <h2>🚑 Troubleshooting quick table</h2>
+      <h2><svg class="ic ic-h2"><use href="#i-wrench"/></svg> Troubleshooting quick table</h2>
     </div>
     <div class="cards">
-      <div class="card reveal"><h3>🔀 Robot rotates by itself after a hit</h3>
+      <div class="card reveal"><h3><svg class="ic"><use href="#i-target"/></svg> Robot rotates by itself after a hit</h3>
         <p>Normal compensation window: P1 gives 3° to recover. If it keeps spinning, check the IMU is
         still flat-mounted and recalibrate on the start pad (START edge resets the yaw target).</p></div>
-      <div class="card reveal"><h3>🐢 Wheels buzz but the robot doesn't move</h3>
+      <div class="card reveal"><h3><svg class="ic"><use href="#i-gear"/></svg> Wheels buzz but the robot doesn't move</h3>
         <p>Torque boost is fighting a real stall: lift the robot and check the gearbox; on the track
         verify the battery is above 7.4 V (BATTERY_COMP scales effort down).</p></div>
-      <div class="card reveal"><h3>🎯 It drifts to one side going straight</h3>
+      <div class="card reveal"><h3><svg class="ic"><use href="#i-chain"/></svg> It drifts to one side going straight</h3>
         <p>Trim deadzone: the pilot's Y/X small offsets re-aim the locked heading. Increase TRIM_SAT
         following offsets if the kid needs a bigger "nudge range" (calibration guide in the wiki).</p></div>
     </div>
@@ -383,8 +416,8 @@ mpremote
 
 <footer>
   <div class="wrap">
-    <p>🤖 <b>Team Robots Legends</b> — FUSAMO · BootCamp Aventura Transforma · XRP <b>Iron Acres</b> ⚔️</p>
-    <p>Made with <span class="heart">♥</span>, encoders, a very patient IMU and zero <code>time.sleep()</code>.</p>
+    <p><svg class="ic"><use href="#i-robot"/></svg> <b>Team Robots Legends</b> — FUSAMO · BootCamp Aventura Transforma · XRP <b>Iron Acres</b></p>
+    <p>Made with <svg class="ic ic-heart"><use href="#i-heart"/></svg>, encoders, a very patient IMU and zero <code>time.sleep()</code>.</p>
   </div>
 </footer>
 

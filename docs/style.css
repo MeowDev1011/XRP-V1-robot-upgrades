@@ -177,3 +177,31 @@ footer .heart { color: var(--danger); }
   .hero-grid { grid-template-columns: 1fr; }
   .hero-robot { display: none; }
 }
+
+/* ============ v3 — SVG stroke icon set (no emojis) ============ */
+.ic {
+  width: 1.05em; height: 1.05em; vertical-align: -0.15em;
+  fill: none; stroke: currentColor; stroke-width: 2;
+  stroke-linecap: round; stroke-linejoin: round; flex: none;
+}
+.ic use { stroke: inherit; }
+.ic-h2 { color: var(--acc2); margin-right: 6px; }
+.ic-heart { color: var(--danger); fill: currentColor; margin: 0 2px; }
+nav .links a .ic { margin-right: 4px; opacity: 0.85; }
+h3 .ic { color: var(--acc2); margin-right: 4px; }
+.pill .ic { margin-right: 4px; color: var(--acc2); }
+.btn .ic { margin-right: 5px; }
+.floaters span { display: flex; }
+.floaters .ic { width: 34px; height: 34px; color: var(--acc); opacity: 0.55; }
+.floaters span:nth-child(2) .ic { color: var(--gold); }
+.floaters span:nth-child(3) .ic { color: var(--acc2); }
+.floaters span:nth-child(4) .ic { color: var(--danger); }
+.floaters span:nth-child(5) .ic { color: #ff8a5c; }
+.hero-icons { display: flex; gap: 26px; justify-content: center; align-items: center; }
+.ic-hero {
+  width: 46px; height: 46px; fill: none; stroke: var(--acc);
+  stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+  filter: drop-shadow(0 6px 18px rgba(79,140,255,0.35));
+}
+.hero-icons .ic-hero:nth-child(2) { stroke: var(--gold); }
+.hero-icons .ic-hero:nth-child(3) { stroke: var(--acc2); }
